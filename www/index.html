@@ -680,6 +680,12 @@ html[data-theme=light] .btab.active,
 .wrap > .view:not(#v-home) .card,
 .wrap > .view:not(#v-home) .mstat,
 .wrap > .view:not(#v-home) .mini-stat{-webkit-backdrop-filter:blur(5px) saturate(130%)!important;backdrop-filter:blur(5px) saturate(130%)!important}
+</style><style id="v49">
+.m-shot-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.m-shot{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:14px 10px;gap:6px;min-height:120px}
+.m-shot-btn{border:0;background:linear-gradient(135deg,var(--accent),#22d3ee);color:#fff;font-weight:800;font-size:15px;border-radius:14px;padding:12px 10px;width:100%;cursor:pointer}
+.m-shot .qa-img{width:100%}
+.m-shot .qa-img img{max-width:100%;max-height:130px;object-fit:contain}
 </style></head>
 <body>
 <script>
@@ -726,7 +732,8 @@ function normSession(s){ return {id:String(s.id||uid()),subjectId:String(s.subje
 function normMistake(m){
  if(!m||typeof m!=='object')return null;
  var iv=reviewIntervals();
- var rec={id:String(m.id||uid()),subjectId:String(m.subjectId||''),tag:String(m.tag||''),question:String(m.question||''),answer:String(m.answer||''),reason:String(m.reason||''),image:(typeof m.image==='string'&&m.image.indexOf('data:image/')===0)?m.image:null,createdAt:/^\d{4}-\d{2}-\d{2}$/.test(m.createdAt||'')?m.createdAt:todayStr(),stage:clampInt(m.stage,0,999,0),dueDate:null,mastered:!!m.mastered,history:Array.isArray(m.history)?m.history.filter(function(h){return h&&typeof h==='object';}).map(function(h){return {date:/^\d{4}-\d{2}-\d{2}$/.test(h.date||'')?h.date:todayStr(),correct:!!h.correct};}):[]};
+ var rec={id:String(m.id||uid()),subjectId:String(m.subjectId||''),tag:String(m.tag||''),question:String(m.question||''),answer:String(m.answer||''),reason:String(m.reason||''),image:(typeof m.image==='string'&&m.image.indexOf('data:image/')===0)?m.image:null,
+    aImage:(typeof m.aImage==='string'&&m.aImage.indexOf('data:image/')===0)?m.aImage:null,createdAt:/^\d{4}-\d{2}-\d{2}$/.test(m.createdAt||'')?m.createdAt:todayStr(),stage:clampInt(m.stage,0,999,0),dueDate:null,mastered:!!m.mastered,history:Array.isArray(m.history)?m.history.filter(function(h){return h&&typeof h==='object';}).map(function(h){return {date:/^\d{4}-\d{2}-\d{2}$/.test(h.date||'')?h.date:todayStr(),correct:!!h.correct};}):[]};
  if(rec.mastered){ rec.dueDate=null; }
  else{ rec.stage=Math.min(rec.stage,iv.length-1); var dd=(/^\d{4}-\d{2}-\d{2}$/.test(m.dueDate||'')?m.dueDate:addDays(rec.createdAt,iv[rec.stage]||1)); rec.dueDate=dd<rec.createdAt?addDays(rec.createdAt,iv[rec.stage]||1):dd; }
  return rec;
@@ -931,19 +938,22 @@ var LAYOUT = `
         <div class="field" style="flex:1"><label class="f">内容标签（章节/题型）</label><input class="in" id="m-tag" list="tag-suggest3" placeholder="如：极限计算"></div>
         <datalist id="tag-suggest3"></datalist>
       </div>
-      <div class="field"><label class="f">题干 *</label><textarea class="in" id="m-q" rows="3" placeholder="把题目抄写/粘贴到这里"></textarea></div>
-      <div class="field"><label class="f">答案与解析 *</label><textarea class="in" id="m-a" rows="3" placeholder="正确答案、解题步骤、关键思路"></textarea></div>
-      <div class="rowline">
-        <div class="field" style="flex:2;min-width:200px"><label class="f">错因（可选）</label><input class="in" id="m-r" placeholder="如：公式记错 / 思路卡壳"></div>
-        <div class="field" style="flex:1;min-width:160px"><label class="f">拍题（点击直接调用相机拍照；也可选相册）</label><input class="in" id="m-img" type="file" accept="image/*" capture="environment" style="padding:6px" title="点击直接调相机/相册"></div>
+      <div class="m-shot-grid">
+        <div class="card m-shot">
+          <button type="button" class="m-shot-btn" data-act="openshot" data-slot="q">📷 拍题目</button>
+          <div class="small muted">点击直接调用原相机</div>
+          <input class="in reveal-hide" id="m-qimg" type="file" accept="image/*" capture="environment">
+          <div class="qa-img reveal-hide" id="m-qprev"></div>
+        </div>
+        <div class="card m-shot">
+          <button type="button" class="m-shot-btn" data-act="openshot" data-slot="a">📷 拍答案解析</button>
+          <div class="small muted">可选 · 与题目归为一道</div>
+          <input class="in reveal-hide" id="m-aimg" type="file" accept="image/*" capture="environment">
+          <div class="qa-img reveal-hide" id="m-aprev"></div>
+        </div>
       </div>
-      <div class="qa-img reveal-hide" id="m-img-prev"></div>
-      <div class="rowline reveal-hide" id="m-img-tools" style="gap:8px">
-        <button class="btn mini" type="button" data-act="imgproc" data-mode="enhance">✨ 去阴影/增强</button>
-        <button class="btn mini" type="button" data-act="imgproc" data-mode="bin">⬛ 黑白印刷版</button>
-        <button class="btn mini pri" type="button" data-act="imgproc" data-mode="ocr">📋 识别题干文字(OCR)</button>
-      </div>
-      <div class="rowline mt10">
+<div class="field"><label class="f">错因（可选）</label><input class="in" id="m-r" placeholder="如：公式记错 / 思路卡壳"></div>
+<div class="rowline mt10">
         <button class="btn pri" type="submit" id="m-save-btn">保存错题</button>
         <button class="btn ghost reveal-hide" type="button" id="m-cancel">取消编辑</button>
       </div>
@@ -961,7 +971,9 @@ var LAYOUT = `
         <span class="small muted" id="paper-total" style="align-self:center"></span>
         <label class="switchline" style="display:flex;align-items:center;gap:6px;font-size:13px;margin-left:12px"><input type="checkbox" id="paper-answers" checked> 附答案解析（放卷尾）</label>
       </div>
+      <div class="rowline" style="flex-wrap:wrap"><select class="in" id="paper-subject"></select><span class="small muted" id="paper-note">每张卷只出一个科目 · 排除已掌握 · 到期优先</span></div>
       <button class="btn pri mt10" data-act="makepaper">🎲 随机抽题生成 PDF</button>
+      <div id="paper-log" class="mt10"></div>
     </div>
   <div id="mlist-main">
     <div class="card" style="margin-top:14px">
@@ -1511,25 +1523,80 @@ async function generatePaperPDF(items,withAnswers){
       var it2=items[b];
       line('第 '+(b+1)+' 题 · '+subj(it2.subjectId).name+(it2.tag?' · '+it2.tag:'')+(it2.reason?'　[错因：'+it2.reason+']':''),'bold 17px '+fb,'#111827',W-2*M,34,'left');
       line(it2.answer||'', '17px '+fb, '#334155', W-2*M, 30, 'left');
+      if(it2.aImage){ await imgBlock(it2.aImage); }
     }
   }
   flushLast();
   if(!pages.length){ return null; }
   return buildPdf(pages);
 }
+function paperWeight(m){
+  var iv=reviewIntervals();
+  var maxSt=Math.max(1,iv.length);
+  var od=diffDays(m.dueDate, todayStr());
+  var dueBoost=1;
+  if(od>=0) dueBoost += Math.min(3, od+1);
+  var stageF = maxSt / (m.stage+1);
+  var rec=1;
+  m.history.slice(-3).forEach(function(x){ rec *= x.correct?0.85:1.4; });
+  return dueBoost * stageF * rec;
+}
+function weightedPick(list,n){
+  var arr=list.slice(), res=[], guard=0;
+  while(res.length<n && arr.length && guard++<10000){
+    var ws=arr.map(paperWeight), tot=0;
+    for(var i=0;i<ws.length;i++)tot+=ws[i];
+    var r=Math.random()*tot, acc=0, idx=0;
+    for(i=0;i<ws.length;i++){ acc+=ws[i]; if(r<=acc){ idx=i; break; } }
+    res.push(arr[idx]); arr.splice(idx,1);
+  }
+  return res;
+}
+function renderPaperLog(){
+  var box=$('#paper-log'); var lp=ui.lastPaper; if(!box||!lp){ return; }
+  if(!lp.items.length){ box.innerHTML=''; return; }
+  var html='<div class="card-h" style="margin-bottom:6px">🎯 登记本次作答（决定下次抽题权重）</div><div class="small muted" style="margin-bottom:8px">按卷面序号把这次的对错点一下：答对→该题下次更难被抽到；答错→下次优先再抽。</div><div class="list">';
+  lp.items.forEach(function(m,i){
+    var d=lp.done[i];
+    var state=d==null?'<button class="btn mini ok" data-act="papermark" data-i="'+i+'" data-ok="1">✓ 答对</button><button class="btn mini bad" data-act="papermark" data-i="'+i+'" data-ok="0">✗ 答错</button>':(d?'<span class="chip tagchip">已记：答对</span>':'<span class="chip" style="background:var(--bad-bg);color:var(--bad)">已记：答错</span>');
+    html+='<div class="listrow"><span class="chip tagchip">第 '+(i+1)+' 题</span>'+chipHtml(m.subjectId)+'<span class="muted small">'+(m.tag||'')+'</span><span style="margin-left:auto"></span>'+state+'</div>';
+  });
+  html+='</div>';
+  box.innerHTML=html;
+}
+function showPaperLog(items){ ui.lastPaper={items:items, done:{}}; renderPaperLog(); }
+function markPaperResult(i,ok){
+  var lp=ui.lastPaper; if(!lp||!lp.items[i])return;
+  var m=lp.items[i];
+  if(ok){ reviewCorrect(m); } else { reviewWrong(m); }
+  lp.done[i]=!!ok;
+  save(); renderPaperLog(); renderMistakeList();
+  toast('第 '+(i+1)+' 题：'+(ok?'答对✓（权重已下调）':'答错✗（下次优先再抽）'));
+}
 function makePaper(){
-  if(!data.mistakes.length){ toast('还没有错题，先去录入几道吧'); return; }
+  var all=data.mistakes.filter(function(m){ return !m.mastered && m.image; });
+  if(!all.length){ toast('没有未掌握的图片错题，先录入并复习吧'); return; }
+  var sel=(document.getElementById('paper-subject')||{}).value||'auto';
+  var bySub={}; all.forEach(function(m){ (bySub[m.subjectId]=bySub[m.subjectId]||[]).push(m); });
+  var pool;
+  if(sel!=='auto'){ pool=bySub[sel]||[]; }
+  else {
+    var best='',bestN=-1;
+    Object.keys(bySub).forEach(function(k){ if(bySub[k].length>bestN){ bestN=bySub[k].length; best=k; } });
+    pool=best?bySub[best]:[];
+  }
+  if(!pool.length){ toast('该科目没有未掌握错题，换科目试试'); return; }
   var cnt=parseInt((document.getElementById('paper-count')||{}).value,10);
-  var pool=data.mistakes.slice();
   if(isNaN(cnt))cnt=5;
   cnt=Math.max(1,Math.min(cnt,pool.length));
   var answers=document.getElementById('paper-answers')?document.getElementById('paper-answers').checked:true;
-  var items=shuffleCopy(pool).slice(0,cnt);
+  var items=weightedPick(pool,cnt);
   toast('正在生成试卷…');
   generatePaperPDF(items,answers).then(function(bytes){
     if(!bytes){ toast('生成失败'); return; }
-    downloadBytes(bytes,'考研错题自测-'+todayStr()+'.pdf');
-    toast('已生成 '+cnt+' 题试卷（PDF），请查看下载');
+    downloadBytes(bytes,'研岸错题自测-'+todayStr()+'.pdf');
+    showPaperLog(items);
+    toast('已生成 '+cnt+' 题试卷（单科：'+subj(items[0].subjectId).name+'），请登记作答结果');
   }).catch(function(e){ toast('生成失败：'+(e&&e.message||e)); });
 }
 function renderMistakes(){
@@ -1545,6 +1612,12 @@ function renderMistakes(){
     +miniStat('复习正确率',rs.tot?pctStr(rs.cor,rs.tot)+'%':'—','全部历史复习');
   $('#m-stats').innerHTML=statsHtml;
   var pt=$('#paper-total'); if(pt)pt.textContent='共 '+data.mistakes.length+' 题，最多可全抽';
+  var ps=$('#paper-subject');
+  if(ps){
+    var old=ps.value;
+    ps.innerHTML='<option value="auto">科目：自动（题最多的科目）</option>'+data.settings.subjects.map(function(x){ return '<option value="'+x.id+'">'+esc(x.name)+'</option>'; }).join('');
+    if(old&&data.settings.subjects.some(function(x){return x.id===old;}))ps.value=old;
+  }
   renderMistakeList();
 }
 function miniStat(lab,num,sub){ return '<div class="mini-stat"><div class="lab">'+esc(lab)+'</div><div class="num">'+num+'</div><div class="sub">'+esc(sub)+'</div></div>'; }
@@ -1561,7 +1634,8 @@ function renderMistakeList(){
     var open=ui.mOpenId===m.id;
     var h=m.history;
     var head='<div class="rowline">'+chipHtml(m.subjectId)+(m.tag?'<span class="chip tagchip">'+esc(m.tag)+'</span>':'')+mistakeRoundLabel(m)+dueBadge(m)+lastResultHtml(m)+'</div>';
-    var snippet='<div class="t-content" style="margin-top:3px">'+esc(m.question.length>80?m.question.slice(0,80)+'…':m.question)+'</div>';
+    var qtxt=(m.question||'')||(m.image?'[图片题]':'');
+    var snippet='<div class="t-content" style="margin-top:3px">'+esc(qtxt.length>80?qtxt.slice(0,80)+'…':qtxt)+'</div>';
     var actions='';
     if(!m.mastered)actions+='<button class="btn mini pri" data-act="mreview" data-id="'+m.id+'">'+(mistakeDue(m)?'复习':'提前复习')+'</button>';
     actions+='<button class="btn mini ghost" data-act="mopen" data-id="'+m.id+'">'+(open?'收起':'详情')+'</button>'
@@ -1572,7 +1646,7 @@ function renderMistakeList(){
       var hist=''; h.forEach(function(x,i){ hist+='<span class="hdot '+(x.correct?'r':'w')+'" title="第'+(i+1)+'次复习 · '+x.date+(x.correct?' 答对':' 答错')+'">'+(x.correct?'✓':'✗')+'</span>'; });
       detail='<div class="detail-box"><div class="small muted" style="margin-bottom:6px">录入于 '+m.createdAt+' · 已复习 '+h.length+' 次'+(hist?'：':'')+'</div>'+(hist?'<div class="hist" style="margin-bottom:8px">'+hist+'</div>':'')
         +'<div class="section-title" style="font-size:13px">题目</div><div class="qa-box" style="margin-top:4px">'+esc(m.question)+(m.image?'<img src="'+m.image+'" alt="错题图片">':'')+'</div>'
-        +'<div class="section-title" style="font-size:13px;margin-top:10px">答案与解析</div><div class="qa-box" style="margin-top:4px">'+esc(m.answer)+'</div>'
+        +'<div class="section-title" style="font-size:13px;margin-top:10px">答案与解析</div><div class="qa-box" style="margin-top:4px">'+esc(m.answer)+(m.aImage?'<img src="'+m.aImage+'" alt="解析图">':'')+'</div>'
         +(m.reason?'<div class="small muted" style="margin-top:8px">错因：'+esc(m.reason)+'</div>':'')+'</div>';
     }
     return '<div class="listrow" style="align-items:flex-start"><div class="t-main">'+head+snippet+detail+'</div><div class="rowline" style="flex:none">'+actions+'</div></div>';
@@ -1587,13 +1661,22 @@ function openMistakeEditor(id){
   $('#m-form-title').textContent=m?'✏️ 编辑错题（不重置复习进度）':'➕ 录入错题';
   $('#m-save-btn').textContent=m?'保存修改':'保存错题';
   $('#m-cancel').classList.toggle('reveal-hide',!m);
-  $('#m-q').value=m?m.question:''; $('#m-a').value=m?m.answer:''; $('#m-r').value=m?m.reason:''; $('#m-tag').value=m?m.tag:'';
-  if(m){ $('#m-subject').value=m.subjectId; ui.mImgData=m.image; } else { ui.mImgData=null; }
-  showMistakeImg();
+  $('#m-r').value=m?m.reason:''; $('#m-tag').value=m?m.tag:'';
+  if(m){ $('#m-subject').value=m.subjectId; ui.mQImg=m.image||null; ui.mAImg=m.aImage||null; } else { ui.mQImg=null; ui.mAImg=null; }
+  showMistakePhoto('q'); showMistakePhoto('a');
   if(id){ window.scrollTo({top:0,behavior:'smooth'}); }
 }
-function clearMistakeForm(){ ui.mEditId=null; ui.mImgData=null; $('#m-form-title').textContent='➕ 录入错题'; $('#m-save-btn').textContent='保存错题'; $('#m-cancel').classList.add('reveal-hide'); $('#m-q').value='';$('#m-a').value='';$('#m-r').value='';$('#m-tag').value='';$('#m-img').value=''; showMistakeImg(); }
-function showMistakeImg(){ var box=$('#m-img-prev'); var tools=$('#m-img-tools'); if(!ui.mImgData){ if(box){box.classList.add('reveal-hide'); box.innerHTML='';} if(tools)tools.classList.add('reveal-hide'); return; } if(box){ box.classList.remove('reveal-hide'); box.innerHTML='<div class="small muted">'+(ui.mImgProc||'已添加图片（自动压缩）')+'</div><img src="'+ui.mImgData+'"><button class="btn mini ghost" data-act="mimgclear">移除图片</button>'; } if(tools)tools.classList.remove('reveal-hide'); }
+function clearMistakeForm(){ ui.mEditId=null; ui.mQImg=null; ui.mAImg=null; ui.mQProc=''; ui.mAProc=''; $('#m-form-title').textContent='➕ 录入错题'; $('#m-save-btn').textContent='保存错题'; $('#m-cancel').classList.add('reveal-hide'); $('#m-r').value='';$('#m-tag').value=''; var qi=$('#m-qimg'); if(qi)qi.value=''; var ai=$('#m-aimg'); if(ai)ai.value=''; showMistakePhoto('q'); showMistakePhoto('a'); }
+function showMistakePhoto(slot){
+  var el=slot==='q'?document.getElementById('m-qprev'):document.getElementById('m-aprev');
+  var d=slot==='q'?ui.mQImg:ui.mAImg;
+  if(!el)return;
+  if(!d){ el.classList.add('reveal-hide'); el.innerHTML=''; return; }
+  el.classList.remove('reveal-hide');
+  var lab=(slot==='q'?(ui.mQProc||'题目照片'):(ui.mAProc||'答案解析照片'));
+  el.innerHTML='<div class="small muted">'+lab+'</div><img src="'+d+'"><button class="btn mini ghost" data-act="mimgclear" data-slot="'+slot+'">重拍/移除</button>';
+}
+function showMistakeImg(){ showMistakePhoto('q'); showMistakePhoto('a'); }
 function compressImageFile(file,cb){ var img=new Image(); var url=URL.createObjectURL(file); img.onload=function(){ URL.revokeObjectURL(url); try{ var MAX=1200; var w=img.naturalWidth||img.width,h=img.naturalHeight||img.height; var sc=Math.min(1,MAX/Math.max(w,h)); w=Math.max(1,Math.round(w*sc)); h=Math.max(1,Math.round(h*sc)); var c=document.createElement('canvas'); c.width=w;c.height=h; var ctx=c.getContext('2d'); ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,w,h); ctx.drawImage(img,0,0,w,h); cb(c.toDataURL('image/jpeg',0.7)); }catch(e){ toast('图片处理失败'); cb(null); } }; img.onerror=function(){ URL.revokeObjectURL(url); toast('无法读取图片'); cb(null); }; img.src=url; }
 function loadScriptOnce(src){ return new Promise(function(res,rej){ if(window.Tesseract){ res(); return; } var sc=document.createElement('script'); sc.src=src; sc.onload=res; sc.onerror=function(){ rej(new Error('load')); }; document.head.appendChild(sc); }); }
 function loadImgFromData(durl){ return new Promise(function(res,rej){ var im=new Image(); im.onload=function(){ res(im); }; im.onerror=rej; im.src=durl; }); }
@@ -1655,10 +1738,10 @@ async function runOcr(){
 }
 
 function submitMistake(){
-  var q=$('#m-q').value.trim(),a=$('#m-a').value.trim(); if(!q){ toast('请填写题干'); return; } if(!a){ toast('请填写答案与解析'); return; }
   var sid=$('#m-subject').value,tag=$('#m-tag').value.trim(),reason=$('#m-r').value.trim();
-  if(ui.mEditId){ var m=mistakeFind(ui.mEditId); if(m){ m.question=q;m.answer=a;m.reason=reason;m.tag=tag;m.subjectId=sid;m.image=ui.mImgData; save(); toast('已保存修改'); } }
-  else { var iv=reviewIntervals(); data.mistakes.push({id:uid(),subjectId:sid,tag:tag,question:q,answer:a,reason:reason,image:ui.mImgData,createdAt:todayStr(),stage:0,dueDate:addDays(todayStr(),iv[0]||1),mastered:false,history:[]}); save(); toast('已加入错题本，第 1 轮复习安排在 '+(iv[0]||1)+' 天后'); }
+  if(!ui.mQImg){ toast('请先拍摄「题目」照'); return; }
+  if(ui.mEditId){ var m=mistakeFind(ui.mEditId); if(m){ if(ui.mQImg){ m.image=ui.mQImg; m.question=(m.question||''); } if(ui.mAImg){ m.aImage=ui.mAImg; } m.reason=reason; m.tag=tag; m.subjectId=sid; save(); toast('已保存修改'); } }
+  else { var iv=reviewIntervals(); data.mistakes.push({id:uid(),subjectId:sid,tag:tag,question:'',answer:'',reason:reason,image:ui.mQImg,aImage:ui.mAImg||null,createdAt:todayStr(),stage:0,dueDate:addDays(todayStr(),iv[0]||1),mastered:false,history:[]}); save(); toast('已加入错题本：题目+答案解析照片已归为一道，第 1 轮复习在 '+(iv[0]||1)+' 天后'); }
   var ret=ui.returnTo; ui.returnTo=null;
   clearMistakeForm(); renderMistakes(); refreshTagDatalists();
   if(ret)switchTab(ret);
@@ -1690,7 +1773,7 @@ function renderReview(){
     +'<div class="small muted" style="margin-bottom:8px">第 '+(rv.i+1)+' / '+rv.ids.length+' 题 · '+esc(m.tag||'无标签')+' · '+esc(subj(m.subjectId).name)+'</div>'
     +'<div class="section-title" style="font-size:14px">题目（先回忆，再点“显示答案”核对）</div>'
     +'<div class="qa-box" style="margin-top:6px">'+esc(m.question)+(m.image?'<img src="'+m.image+'" alt="题目图片">':'')+'</div>'
-    +(reveal?'<div style="margin-top:12px"><div class="section-title" style="font-size:14px">答案与解析</div><div class="qa-box" style="margin-top:6px;background:var(--ok-bg);border-color:transparent">'+esc(m.answer)+(m.reason?'<div style="margin-top:8px;color:var(--muted)">错因：'+esc(m.reason)+'</div>':'')+'</div></div>':'')
+    +(reveal?'<div style="margin-top:12px"><div class="section-title" style="font-size:14px">答案与解析</div><div class="qa-box" style="margin-top:6px;background:var(--ok-bg);border-color:transparent">'+esc(m.answer)+(m.aImage?'<img src="'+m.aImage+'" alt="解析图">':'')+(m.reason?'<div style="margin-top:8px;color:var(--muted)">错因：'+esc(m.reason)+'</div>':'')+'</div></div>':'')
     +'<div class="review-ctls">'
     +(reveal
       ?'<button class="bigbtn ok" data-act="mright">✓ 答对了</button><button class="bigbtn bad" data-act="mwrong">✗ 答错了</button>'
@@ -1856,7 +1939,9 @@ function handleAct(act,el){
     case 'mdel': { var m=mistakeFind(id); if(m&&confirm('删除这道错题？其复习记录也会一并删除。')){ data.mistakes=data.mistakes.filter(function(x){return x.id!==id;}); save(); renderMistakes(); } break; }
     case 'mopen': ui.mOpenId=(ui.mOpenId===id)?null:id; renderMistakeList(); break;
     case 'makepaper': makePaper(); break;
-    case 'mimgclear': ui.mImgData=null; ui.mImgProc=''; $('#m-img').value=''; showMistakeImg(); break;
+    case 'papermark': markPaperResult(parseInt(el.getAttribute('data-i'),10), el.getAttribute('data-ok')==='1'); break;
+    case 'mimgclear': { var sl=el.getAttribute('data-slot')||'q'; if(sl==='a'){ ui.mAImg=null; ui.mAProc=''; var ai2=$('#m-aimg'); if(ai2)ai2.value=''; } else { ui.mQImg=null; ui.mQProc=''; var qi2=$('#m-qimg'); if(qi2)qi2.value=''; } showMistakePhoto(sl); break; }
+    case 'openshot': { var sId=el.getAttribute('data-slot')==='a'?'m-aimg':'m-qimg'; var inp=document.getElementById(sId); if(inp)inp.click(); break; }
     case 'imgproc': { var md=el.getAttribute('data-mode'); if(md==='ocr'){ runOcr(); } else { processMistakeImage(md); } break; }
     case 'sdel': deleteSubject(parseInt(el.getAttribute('data-i'),10)); break;
     case 'idel': deleteInterval(parseInt(el.getAttribute('data-i'),10)); break;
@@ -1877,7 +1962,8 @@ function bindEvents(){
   var noteTimer=null;
   $('#day-note').addEventListener('input',function(){ var v=this.value,d=ui.viewDate; clearTimeout(noteTimer); noteTimer=setTimeout(function(){ dayRec(d).note=v; save(); },500); });
   var mc=$('#m-cancel'); if(mc)mc.addEventListener('click',function(){ var t=ui.returnTo; ui.returnTo=null; clearMistakeForm(); if(t)switchTab(t); });
-  $('#m-img').addEventListener('change',function(){ var f=this.files&&this.files[0]; if(!f){ return; } compressImageFile(f,function(durl){ if(durl){ ui.mImgData=durl; showMistakeImg(); toast('图片已压缩添加'); } }); });
+  $('#m-qimg').addEventListener('change',function(){ var f=this.files&&this.files[0]; if(!f){ return; } compressImageFile(f,function(durl){ if(durl){ ui.mQImg=durl; ui.mQProc='题目照片（已压缩，可长按列表重新拍）'; showMistakePhoto('q'); toast('题目照已添加'); } }); });
+  $('#m-aimg').addEventListener('change',function(){ var f=this.files&&this.files[0]; if(!f){ return; } compressImageFile(f,function(durl){ if(durl){ ui.mAImg=durl; ui.mAProc='答案解析照（已压缩）'; showMistakePhoto('a'); toast('答案解析照已添加'); } }); });
   ['task-subject','practice-subject','manual-subject','m-subject'].forEach(function(sid){ var el=document.getElementById(sid); if(el)el.addEventListener('change',refreshTagDatalists); });
   $('#set-goal').addEventListener('change',function(){ data.settings.dailyGoalMin=clampInt(this.value,1,1440,480); save(); renderTodaySummary(); });
   $('#set-exam').addEventListener('change',function(){ data.settings.examDate=this.value||''; save(); renderTodaySummary(); });
