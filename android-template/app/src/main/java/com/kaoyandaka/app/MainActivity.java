@@ -1,18 +1,23 @@
 package com.kaoyandaka.app;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.content.Intent;
 import android.provider.MediaStore;
 import android.util.Base64;
+import android.widget.Toast;
 import android.webkit.ValueCallback;
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import androidx.core.content.FileProvider;
 import java.io.File;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -33,6 +38,8 @@ public class MainActivity extends Activity {
     private ValueCallback<Uri[]> mFileMsg = null;
     private Uri mCaptureUri = null;
     private static final int REQ_PICK = 9001;
+    private static final int REQ_PERM = 9002;
+    private boolean mCameraPending = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,15 +82,13 @@ public class MainActivity extends Activity {
                 mFileMsg = filePathCallback;
                 try {
                     if (params != null && params.isCaptureEnabled()) {
-                        File dir = new File(getCacheDir(), "capture");
-                        if (!dir.exists()) dir.mkdirs();
-                        File f = new File(dir, "cap_" + System.currentTimeMillis() + ".jpg");
-                        mCaptureUri = FileProvider.getUriForFile(MainActivity.this, "com.kaoyandaka.app.fileprovider", f);
-                        Intent cam = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                        cam.putExtra(MediaStore.EXTRA_OUTPUT, mCaptureUri);
-                        cam.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                        startActivityForResult(cam, REQ_PICK);
-                        return true;
+                        if (Build.VERSION.SDK_INT >= 23) {
+                            List<String> need = new ArrayList<>();
+                            if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) need.add(Manifest.permission.CAMERA);
+                            if (Build.VERSION.SDK_INT <= 28 && checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) need.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                            if (!need.isEmpty()) { mCameraPending = true; requestPermissions(need.toArray(new String[0]), REQ_PERM); return true; }
+                        }
+                        return startCameraCapture();
                     }
                     Intent chooser = params.createIntent();
                     startActivityForResult(chooser, REQ_PICK);
@@ -154,6 +159,33 @@ public class MainActivity extends Activity {
             return;
         }
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private boolean startCameraCapture() {
+        try {
+            File dir = new File(getCacheDir(), "capture");
+            if (!dir.exists()) dir.mkdirs();
+            File f = new File(dir, "cap_" + System.currentTimeMillis() + ".jpg");
+            mCaptureUri = FileProvider.getUriForFile(MainActivity.this, "com.kaoyandaka.app.fileprovider", f);
+            Intent cam = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            cam.putExtra(MediaStore.EXTRA_OUTPUT, mCaptureUri);
+            cam.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            startActivityForResult(cam, REQ_PICK);
+            return true;
+        } catch (Exception e) { return false; }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if (requestCode == REQ_PERM && mCameraPending) {
+            mCameraPending = false;
+            boolean ok = true;
+            for (int g : grantResults) { if (g != PackageManager.PERMISSION_GRANTED) ok = false; }
+            if (ok) { startCameraCapture(); }
+            else if (mFileMsg != null) { mFileMsg.onReceiveValue(null); mFileMsg = null; }
+            return;
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     private void pushPhotoToJs(final File f) {
