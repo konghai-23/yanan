@@ -1,4 +1,4 @@
-# 考研自习打卡
+# 研岸 · 考研自习打卡
 
 网页应用全部在 `www/` 目录（单文件 `www/index.html`，无外部依赖、可完全离线）。用 Chrome/Edge 双击 `www/index.html` 即可使用。
 
@@ -35,12 +35,12 @@
 - 手机上的数据保存在手机浏览器本地，与电脑版互相独立；换设备/换浏览器用“设置 → 导出/导入 JSON”迁移。
 - 需要**真正的安卓 .apk 安装包**时，需先在本机安装 JDK 17 + Android SDK（约 2GB），再用 Capacitor 把本文件夹打包成 APK（构建命令与步骤可再生成）；iOS 安装包则必须有 Mac + Xcode + Apple 开发者账号，Windows 上无法产出。
 ## 📦 安卓 APK（安装包）
-- 安装包已生成：`dist/考研自习打卡-v3.1.apk`（用本仓库 `www/` 的网页资源打包的原生 WebView App，**纯离线**，数据保存在手机 App 本地）。
+- 安装包已生成：`dist/研岸-v3.2.apk`（用本仓库 `www/` 的网页资源打包的原生 WebView App，**纯离线**，数据保存在手机 App 本地）。
 - **安装到手机**：把 APK 传到安卓手机（数据线 / 微信 / 网盘均可）→ 点击 APK → 按提示允许“安装未知来源应用”即可。
 - **重新打包**（比如以后改进了功能）：本机已装好 JDK 17 + Android SDK（`C:\Users\34497\android-tools`），在仓库目录运行：
   ```powershell
   .\build-apk.ps1
   ```
-  安装包会输出到 `dist\`；也可 `-OutName "考研自习打卡-v3.2.apk"` 自定义文件名。
+  安装包会输出到 `dist\`；也可 `-OutName "研岸-v3.3.apk"` 自定义文件名。
 - 该 APK 使用个人调试签名，仅供自己手机安装；如需对外发布请另行配置 release 签名（README 不展开）。
 - iPhone 无法在 Windows 上打包，仍用上文“添加到主屏幕”的 PWA 方式。

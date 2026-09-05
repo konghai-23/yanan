@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>考研自习打卡</title>
+<title>研岸 · 考研自习</title>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
@@ -170,12 +170,12 @@ kbd.hintkey{font-size:11px;color:var(--muted);background:var(--card2);border:1px
 .note-line{font-size:12.5px;color:var(--muted);background:var(--warn-bg);color:var(--warn);border-radius:10px;padding:8px 12px;margin-bottom:12px}
 #toastwrap{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:200;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
 </style>
-<meta name="description" content="考研自习打卡：每日任务、番茄钟计时、正确率统计与错题间隔复习">
+<meta name="description" content="研岸·考研自习：番茄钟、错题复习、每日一句与随机组卷 PDF">
 <meta name="theme-color" content="#4f6df5">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="考研打卡">
+<meta name="apple-mobile-web-app-title" content="研岸">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -599,6 +599,33 @@ body{
     linear-gradient(180deg,#f8fafe,#eef2f8);
   background-attachment:fixed;
 }
+</style><style id="v22">
+.app-bg,.app-veil{display:none!important}
+.wrap{position:relative;z-index:1}
+.wrap > .view:not(#v-home){position:relative;z-index:2}
+
+.tabbar{background:rgba(15,20,36,.62);border:1px solid rgba(255,255,255,.16)}
+html[data-theme=dark] .tabbar{background:rgba(15,20,36,.62);border-color:rgba(255,255,255,.16)}
+.btab{color:rgba(255,255,255,.78);font-size:14px;font-weight:600;padding:13px 2px 12px}
+.btab.active{color:#ffffff;font-weight:800}
+.btab.active::after{background:linear-gradient(90deg,#67e8f9,#ffffff)}
+</style><style id="v23">
+.btab{color:rgba(255,255,255,.8)}
+html[data-theme=light] .btab.active,
+.btab.active{color:#ffffff!important}
+</style><style id="v31">
+.wrap>.view:not(#v-home){position:relative;z-index:2}
+.wrap>.view:not(#v-home)>*{position:relative;z-index:2}
+.pg-bg{position:fixed;inset:0;z-index:0!important;background-color:#0d1220;background-size:cover;background-position:center;pointer-events:none}
+</style><style id="v33">
+.pg-bg{position:fixed;inset:0;z-index:0!important;background-color:#11162a;background-size:cover;background-position:center;background-repeat:no-repeat;pointer-events:none}
+.pg-veil{position:fixed;inset:0;z-index:1!important;display:none;pointer-events:none;background:linear-gradient(180deg, rgba(8,12,24,.35), rgba(8,12,24,.62))}
+.wrap.pg-on .pg-veil{display:block}
+.wrap>.view:not(#v-home){position:relative;z-index:2}
+.wrap>.view:not(#v-home)>*{position:relative;z-index:2}
+</style><style id="v34">
+.wrap{position:relative;z-index:2}
+.view:not(#v-home){position:relative;z-index:auto}
 </style></head>
 <body>
 <script>
@@ -762,10 +789,10 @@ function donutHtml(segs,centerLabel){ var tot=0; segs.forEach(function(s){tot+=s
  return '<div class="donutwrap"><div class="ring" style="background:'+grad+'"><div class="ringtxt"><b>'+centerLabel+'</b><span>合计</span></div></div><div class="legend">'+leg+'</div></div>';
 }/* ============ 页面骨架 ============ */
 var LAYOUT = `
+<div class="home-bg" id="home-bg"></div>
+<div class="home-veil" id="home-veil"></div>
 <div class="wrap">
 <section class="view active" id="v-home">
-  <div class="home-bg" id="home-bg"></div>
-  <div class="home-veil"></div>
   <div class="home-content">
     <div class="hero" id="hero">
       <div class="hero-lab" id="hero-lab">距考试还有</div>
@@ -959,7 +986,7 @@ var LAYOUT = `
   </div>
   <div class="card mt16">
     <div class="card-h">ℹ️ 关于</div>
-    <div class="small muted">考研自习打卡 · 第二代 v2.0（移动端）<br>· 数据仅保存在本机浏览器/App 内，请定期在「数据备份」导出；<br>· 首页背景图与英文每日一句需联网获取，图片每天自动更换；<br>· 断网时自动使用本地渐变背景与内置例句。</div>
+    <div class="small muted">研岸 · 考研自习打卡　v3.1<br>· “研岸”愿你顺利上岸；<br>· 每次进入 App 自动更换治愈系背景（全页跟随），每次返回首页更换每日英文一句；<br>· 全站卡片颜色会跟随首页背景动态取色；<br>· 支持错题录入/多轮复习/随机组卷 PDF；<br>· 数据仅保存在本机，请定期在「数据备份」导出。</div>
   </div>
 </section>
 </div>
@@ -973,7 +1000,7 @@ var LAYOUT = `
 function $(sel){ return document.querySelector(sel); }
 function toast(msg){ var w=document.getElementById('toastwrap'); if(!w){ w=document.createElement('div'); w.id='toastwrap'; document.body.appendChild(w); } var t=document.createElement('div'); t.className='toast'; t.textContent=msg; w.appendChild(t); setTimeout(function(){ t.style.transition='opacity .4s'; t.style.opacity='0'; setTimeout(function(){ t.remove(); },400); },2600); }
 function updateStoreMeter(){ if(typeof document==='undefined')return; var el=document.getElementById('store-meter'); if(!el)return; try{ var bytes=new TextEncoder().encode(JSON.stringify(data)).length; var mb=(bytes/1024/1024).toFixed(2); var pct=Math.min(100,bytes/MAX_BYTES*100); el.querySelector('i').style.width=pct+'%'; el.classList.toggle('warn',pct>60&&pct<=85); el.classList.toggle('full',pct>85); var n=document.getElementById('store-num'); if(n)n.textContent=mb+' MB'; }catch(e){} }
-function applyTheme(){ document.documentElement.setAttribute('data-theme','light'); try{ if(window.AndroidTheme)window.AndroidTheme.apply('light'); }catch(e){} }
+function applyTheme(){ document.documentElement.setAttribute('data-theme','dark'); try{ if(window.AndroidTheme)window.AndroidTheme.apply('dark'); }catch(e){} }
 function refreshTagDatalists(){ ['tag-suggest','tag-suggest2','tag-suggest3'].forEach(function(dlId){ var dl=document.getElementById(dlId); if(!dl)return; var sidEl=dlId==='tag-suggest'?$('#practice-subject'):dlId==='tag-suggest2'?$('#manual-subject'):$('#m-subject'); var sid=sidEl?sidEl.value:''; var tags={}; Object.keys(data.days).forEach(function(k){ (data.days[k].practice||[]).forEach(function(p){ if(p.subjectId===sid&&p.tag)tags[p.tag]=1; }); (data.days[k].sessions||[]).forEach(function(s){ if(s.subjectId===sid&&s.tag)tags[s.tag]=1; }); }); data.mistakes.forEach(function(m){ if(m.subjectId===sid&&m.tag)tags[m.tag]=1; }); var opts=Object.keys(tags).sort(); dl.innerHTML=opts.map(function(t){return '<option value="'+escDl(t)+'"></option>';}).join(''); }); }
 function fillSubjectOptions(){ document.querySelectorAll('.subj-sel').forEach(function(sel){ var cur=sel.value; subjectOptions(sel,data.settings.subjects.some(function(x){return x.id===cur;})?cur:''); }); refreshTagDatalists(); }
 
@@ -1196,6 +1223,12 @@ function pickLaunchRandom(){
   launch.bgIdx=bi;
   saveLaunch();
 }
+function pickQuoteOnly(){
+  var qi=Math.floor(Math.random()*QUOTES.length);
+  if(launch.quoteIdx>=0&&QUOTES.length>1&&qi===launch.quoteIdx)qi=(qi+1)%QUOTES.length;
+  launch.quoteIdx=qi;
+  saveLaunch();
+}
 function dayNum(){ return parseInt(todayStr().replace(/-/g,''),10); }
 function renderActive(){ if(ui.tab==='home')renderHome(); else if(ui.tab==='record')renderRecord(); }
 function bgImageUrl(){ return BG_LANDSCAPES[(launch.bgIdx>=0&&launch.bgIdx<BG_LANDSCAPES.length)?launch.bgIdx:0]; }
@@ -1225,15 +1258,38 @@ function preloadBg(){
   if(data.settings.useDailyBg===false)return;
   try{ var im=new Image(); im.crossOrigin='anonymous'; im.src=bgImageUrl(); im.onload=function(){ applyTint(im); }; }catch(e){}
 }
+var _curBg='';
+function setViewBg(urlOrNull){
+  _curBg=urlOrNull||'';
+  var layers=document.querySelectorAll('.pg-bg');
+  var wr=document.querySelector('.wrap');
+  if(wr)wr.classList.toggle('pg-on',!!urlOrNull);
+  for(var i=0;i<layers.length;i++){
+    var v=layers[i];
+    if(urlOrNull){ v.style.background='#11162a url("'+urlOrNull+'") center/cover no-repeat'; }
+    else { v.style.background='#11162a'; }
+  }
+}
+function forcePgBg(){
+  if(!_curBg)return;
+  setViewBg(_curBg);
+  document.querySelectorAll('.view.active .pg-bg').forEach(function(b){
+    b.style.display='none'; void b.offsetHeight; b.style.display='';
+  });
+}
 function applyDailyBg(){
   var el=$('#home-bg'); if(!el)return;
+  var root=document.documentElement;
+  var wr=document.querySelector('.wrap');
   var grad=BG_GRADS[(launch.gradIdx>=0&&launch.gradIdx<BG_GRADS.length)?launch.gradIdx:(dayNum()%BG_GRADS.length)];
-  if(data.settings.useDailyBg===false){ el.style.background=grad; return; }
+  if(data.settings.useDailyBg===false){ el.style.background=grad; setViewBg(null); if(wr)wr.classList.remove('bg-on'); return; }
   var url=bgImageUrl();
   el.style.background='#11162a url("'+url+'") center/cover no-repeat';
+  setViewBg(url);
+  if(wr)wr.classList.add('bg-on');
   var img=new Image(); img.crossOrigin='anonymous';
   img.onload=function(){ try{ applyTint(img); }catch(e){} };
-  img.onerror=function(){ el.style.background=grad; };
+  img.onerror=function(){ el.style.background=grad; setViewBg(null); if(wr)wr.classList.remove('bg-on'); };
   img.src=url;
 }
 function renderQuote(){
@@ -1648,7 +1704,8 @@ function switchTab(name){
   var noScroll=(name==='home'||name==='mistake');
   var docRoot=document.documentElement; if(docRoot)docRoot.style.overflow=noScroll?'hidden':'';
   if(document.body)document.body.style.overflow=noScroll?'hidden':'';
-  if(prevTab==='home'&&name!=='home'){ pickLaunchRandom(); preloadBg(); }
+  if(name==='home'&&prevTab!=='home'){ pickQuoteOnly(); }
+  if(name!=='home')forcePgBg();
   if(name==='home'){ renderHome(); }
   else if(name==='record'){ if(!ui.viewDate)ui.viewDate=todayStr(); renderRecord(); }
   else if(name==='mistake'){ fillSubjectOptions(); if(!ui.mEditId)clearMistakeForm(); }
@@ -1724,6 +1781,7 @@ function init(){
   loadData(); loadTimer(); applyTheme();
   document.body.innerHTML=LAYOUT;
   var w0=document.querySelector('.wrap'); if(w0)w0.setAttribute('data-card','dark');
+
   document.documentElement.style.setProperty('--bR',222);
   document.documentElement.style.setProperty('--bG',228);
   document.documentElement.style.setProperty('--bB',247);

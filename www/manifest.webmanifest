@@ -1,7 +1,7 @@
 {
-  "name": "考研自习打卡",
-  "short_name": "考研打卡",
-  "description": "任务打卡、番茄钟计时、正确率统计与错题间隔复习",
+  "name": "研岸 · 考研自习",
+  "short_name": "研岸",
+  "description": "研岸：番茄钟、错题复习、每日一句与随机组卷 PDF",
   "lang": "zh-CN",
   "start_url": "./index.html",
   "scope": "./",
