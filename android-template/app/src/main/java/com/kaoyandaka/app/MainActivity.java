@@ -10,6 +10,7 @@ import android.util.Base64;
 import android.widget.Toast;
 import android.webkit.ValueCallback;
 import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import androidx.core.content.FileProvider;
@@ -119,6 +120,7 @@ public class MainActivity extends Activity {
             }
         });
         web.addJavascriptInterface(new ThemeBridge(), "AndroidTheme");
+        web.addJavascriptInterface(new PdfBridge(), "AndroidPdf");
         setContentView(web);
         web.loadUrl("file:///android_asset/public/index.html");
     }
@@ -140,6 +142,36 @@ public class MainActivity extends Activity {
         int vis = View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
         if (lightIcons) vis |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
         getWindow().getDecorView().setSystemUiVisibility(vis);
+    }
+
+    private class PdfBridge {
+        @JavascriptInterface
+        public void open(final String b64, final String name) {
+            runOnUiThread(new Runnable() { public void run() { try {
+                byte[] data = Base64.decode(b64, Base64.DEFAULT);
+                File dir = new File(getCacheDir(), "pdf");
+                if (!dir.exists()) dir.mkdirs();
+                String safe = "paper_" + System.currentTimeMillis() + ".pdf";
+                File f = new File(dir, safe);
+                FileOutputStream out = new FileOutputStream(f);
+                out.write(data);
+                out.flush();
+                out.close();
+                Uri uri = FileProvider.getUriForFile(MainActivity.this, "com.kaoyandaka.app.fileprovider", f);
+                try {
+                    Intent view = new Intent(Intent.ACTION_VIEW);
+                    view.setDataAndType(uri, "application/pdf");
+                    view.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    startActivity(view);
+                } catch (Exception e) {
+                    Intent share = new Intent(Intent.ACTION_SEND);
+                    share.setType("application/pdf");
+                    share.putExtra(Intent.EXTRA_STREAM, uri);
+                    share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    startActivity(Intent.createChooser(share, "打开/分享试卷 PDF"));
+                }
+            } catch (Exception ignored) { try { Toast.makeText(MainActivity.this, "PDF 打开失败", Toast.LENGTH_SHORT).show(); } catch (Exception t) {} } } });
+        }
     }
 
     private class ThemeBridge {
