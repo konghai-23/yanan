@@ -370,6 +370,38 @@ html[data-theme=dark] .tabbar::before{opacity:.35}
 }
 /* 玻璃卡片也提高真实通透度（毛玻璃质感更明显） */
 #v-home .glass{background:rgba(16,22,38,.42);border-color:rgba(255,255,255,.2)}
+</style><style id="v6">
+/* 导航 75% 透明（alpha≈0.25） */
+.tabbar{background:linear-gradient(180deg, rgba(255,255,255,.30), rgba(255,255,255,.14))}
+html[data-theme=dark] .tabbar{background:linear-gradient(180deg, rgba(38,50,78,.34), rgba(20,28,48,.16))}
+.tabbar::before{opacity:.32}
+@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){
+  .tabbar{background:rgba(255,255,255,.22)}
+  html[data-theme=dark] .tabbar{background:rgba(22,30,52,.26)}
+}
+/* 番茄钟双列紧凑 */
+.pomo-main{display:flex;gap:14px;align-items:center}
+.pomo-side{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+.pomo-fields{display:flex;gap:8px}
+.pomo-fields .pomo-subject{flex:0 1 auto;max-width:46%;min-width:0}
+.pomo-fields .pomo-tag{flex:1;min-width:0}
+.pomo-btns{display:flex;gap:6px;flex-wrap:wrap}
+.pomo-btns .btn{flex:1;justify-content:center;padding:7px 6px;font-size:12.5px;min-width:0;border-radius:10px}
+.pomo-btns .btn.ghost{flex:0 0 auto}
+.pomo-hint{font-size:10.5px;color:rgba(255,255,255,.55);min-height:12px}
+#v-home .ring{width:104px;height:104px}
+#v-home .ring::after{inset:9px}
+#v-home .pomo-time{font-size:26px}
+#v-home .ringtxt b{font-size:15px}
+#v-home .ringtxt span{font-size:10px}
+#v-home .pomo-card .card-h{margin-bottom:8px}
+/* 记录子页返回 */
+.rec-head{display:flex;align-items:center;gap:2px;margin-top:14px}
+/* 统计 */
+.stat-total{text-align:left}
+.stat-total-big{font-size:38px;font-weight:900;line-height:1.05;font-variant-numeric:tabular-nums}
+#v-stats .bar-row .val{width:auto}
+#v-stats .listrow .pbar>i{transition:width .4s}
 </style></head>
 <body>
 <script>
@@ -563,7 +595,7 @@ var LAYOUT = `
   </div>
 </section>
 <section class="view" id="v-record">
-  <div class="page-head"><h2>📝 打卡记录</h2><span class="ph-sub">任务 · 练习 · 时长 · 备注</span></div>
+  <div class="page-head rec-head"><button class="btn ghost" data-act="tab" data-tab="home">‹ 返回首页</button><h2 style="margin-left:4px">📝 打卡记录</h2></div>
   <div class="datebar">
     <button class="btn mini" data-act="prevday">← 前一天</button>
     <span class="dlabel" id="date-label"></span>
@@ -659,34 +691,16 @@ var LAYOUT = `
   </div>
 </section>
 <section class="view" id="v-stats">
-  <div class="rowline" style="margin:14px 0 4px">
-    <h2 class="section-title" style="margin:0">📊 学习统计</h2>
-    <span class="spacer"></span>
-    <div class="seg" id="stats-range">
-      <button data-range="7" class="on">近 7 天</button>
-      <button data-range="30">近 30 天</button>
-    </div>
-  </div>
-  <div id="stats-cards" class="sum-grid"></div>
-  <div class="grid2">
-    <div class="card"><div class="card-h">每日专注时长（分钟）</div><div id="chart-focus"></div></div>
-    <div class="card"><div class="card-h">科目时长占比</div><div id="chart-subject"></div></div>
-  </div>
-  <div class="grid2 mt16">
-    <div class="card"><div class="card-h">每日任务完成率</div><div id="chart-task"></div></div>
-    <div class="card"><div class="card-h">每日练习正确率</div><div id="chart-pacc"></div></div>
-  </div>
-  <div class="grid2 mt16">
-    <div class="card"><div class="card-h">练习正确率 · 按科目</div><div id="p-subject"></div></div>
-    <div class="card"><div class="card-h">练习正确率 · 按内容标签</div><div id="p-tag"></div></div>
+  <div class="page-head"><h2>📊 统计</h2><span class="ph-sub">累计各科时长 · 错题</span></div>
+  <div class="card">
+    <div class="card-h">⏱ 累计各科专注时长 <span class="hint">全部历史累计</span></div>
+    <div id="stat-total" class="stat-total"></div>
+    <div id="stat-subject" class="mt10"></div>
   </div>
   <div class="card mt16">
-    <div class="card-h">📕 错题复习统计 <span class="hint">全部时间累计</span></div>
+    <div class="card-h">📕 错题统计 <span class="hint">全部历史</span></div>
     <div id="m-stats-cards" class="grid-stats"></div>
-    <div class="grid2 mt16">
-      <div class="card" style="margin:0"><div class="card-h">各轮次复习正确率</div><div id="m-round"></div></div>
-      <div class="card" style="margin:0"><div class="card-h">按科目复习正确率</div><div id="m-subj"></div></div>
-    </div>
+    <div class="mt16"><div class="section-title">各轮次复习正确率</div><div id="m-round" class="mt10"></div></div>
   </div>
 </section>
 <section class="view" id="v-settings">
@@ -745,10 +759,9 @@ var LAYOUT = `
 </div>
 <nav class="tabbar"><div class="tabbar-in">
   <button class="btab active" data-act="tab" data-tab="home"><span class="icw"><span class="ic">🏠</span></span>首页</button>
-  <button class="btab" data-act="tab" data-tab="record"><span class="icw"><span class="ic">📝</span></span>记录</button>
   <button class="btab" data-act="tab" data-tab="mistake"><span class="icw"><span class="ic">📕</span></span>错题</button>
   <button class="btab" data-act="tab" data-tab="stats"><span class="icw"><span class="ic">📊</span></span>统计</button>
-  <button class="btab" data-act="tab" data-tab="settings"><span class="icw"><span class="ic">⚙️</span></span>我的</button>
+  <button class="btab" data-act="tab" data-tab="settings"><span class="icw"><span class="ic">⚙️</span></span>设置</button>
 </div></nav>
 `;/* ============ DOM 小工具 ============ */
 function $(sel){ return document.querySelector(sel); }
@@ -776,29 +789,20 @@ function renderPomo(){
   var chipTxt=phase==='focus'?'专注中':restPhase?(phase==='short'?'短休中':'长休中'):'准备开始';
   var pct=0; if(phase!=='idle'){ var dur=durMs(); pct=dur?Math.min(100,elapsedMs()/dur*100):0; }
   var showTime = phase!=='idle'?fmtClock(remainingMs()):fmtClock(pm.focus*60000);
-  var html='';
-  html+='<div class="ringwrap"><div class="ring" id="t-ring" style="background:conic-gradient(var(--accent) 0deg '+(pct*3.6).toFixed(1)+'deg, rgba(255,255,255,.16) 0deg)"><div class="ringtxt"><b id="t-time">'+showTime+'</b><span id="t-phase">'+chipTxt+'</span></div></div>';
-  html+='<div style="flex:1;min-width:200px"><div class="rowline"><div class="field" style="flex:1"><label class="f">本次科目</label><select class="in subj-sel" id="pomo-subject"></select></div></div>';
-  html+='<div class="field"><label class="f">内容（可选，计入本次记录）</label><input class="in" id="pomo-tag" placeholder="如：英语真题阅读" value="'+escDl(timer.tag||'')+'"></div>';
-  html+='<div class="rowline" id="t-ctls"></div></div></div>';
+  var html='<div class="pomo-main">';
+  html+='<div class="ring pomo-ring" id="t-ring" style="background:conic-gradient(var(--accent) 0deg '+(pct*3.6).toFixed(1)+'deg, rgba(255,255,255,.16) 0deg)"><div class="ringtxt"><b id="t-time">'+showTime+'</b><span id="t-phase">'+chipTxt+'</span></div></div>';
+  html+='<div class="pomo-side"><div class="pomo-fields"><select class="in subj-sel pomo-subject" id="pomo-subject" title="科目"></select><input class="in pomo-tag" id="pomo-tag" placeholder="内容(可选)" value="'+escDl(timer.tag||'')+'"></div>';
+  html+='<div class="pomo-btns" id="t-ctls"></div><div class="pomo-hint" id="t-hint"></div></div></div>';
   body.innerHTML=html;
   subjectOptions($('#pomo-subject'),timer.subjectId||'');
   $('#pomo-subject').addEventListener('change',function(){ timer.subjectId=this.value; saveTimer(); });
   $('#pomo-tag').addEventListener('input',function(){ timer.tag=this.value; });
-  var ctl=$('#t-ctls');
-  if(phase==='idle'&&!ui.pendingBreak){
-    ctl.innerHTML='<button class="btn ok" data-act="pstart">▶ 开始专注</button><span class="muted small">到点自动结算并提醒休息</span>';
-  } else if(phase==='focus'){
-    ctl.innerHTML=(running?'<button class="btn" data-act="ppause">⏸ 暂停</button>':'<button class="btn" data-act="presume">▶ 继续</button>')
-      +'<button class="btn" data-act="psave">💾 保存并结束</button><button class="btn ghost" data-act="pdrop">放弃本次</button>';
-  } else if(restPhase){
-    ctl.innerHTML='<button class="btn" data-act="pskip">⏭ 跳过休息</button><span class="muted small">休息不计入学习时长</span>';
-  } else if(ui.pendingBreak){
-    var l=ui.pendingBreak.long;
-    ctl.innerHTML='<span class="muted small">🍅 完成！该休息一下了</span><button class="btn '+(l?'':'pri')+'" data-act="pbreak" data-long="0">短休 '+pm.short+' 分钟</button>'
-      +(l?'<button class="btn pri" data-act="pbreak" data-long="1">长休 '+pm.long+' 分钟</button>':'')
-      +'<button class="btn ok" data-act="pnext">再来一个专注</button><button class="btn ghost" data-act="pend">结束</button>';
-  }
+  var ctl=$('#t-ctls'), ht=$('#t-hint'), hintTxt='';
+  if(phase==='idle'&&!ui.pendingBreak){ ctl.innerHTML='<button class="btn ok" data-act="pstart">▶ 开始专注</button>'; hintTxt='时长可在「设置」调整 · 到点自动结算并提醒'; }
+  else if(phase==='focus'){ ctl.innerHTML=(running?'<button class="btn" data-act="ppause">⏸ 暂停</button>':'<button class="btn pri" data-act="presume">▶ 继续</button>')+'<button class="btn" data-act="psave">结算</button><button class="btn ghost" data-act="pdrop">放弃</button>'; hintTxt=running?'计时中，切换科目会记录到新科目':'已暂停，可继续或结算'; }
+  else if(restPhase){ ctl.innerHTML='<button class="btn pri" data-act="pskip">⏭ 跳过休息</button>'; hintTxt='休息中，不计入学习时长'; }
+  else if(ui.pendingBreak){ var l=ui.pendingBreak.long; hintTxt='🍅 完成！休息一下或直接再来'; ctl.innerHTML='<button class="btn'+(l?'':' pri')+'" data-act="pbreak" data-long="0">短休 '+pm.short+'′</button>'+(l?'<button class="btn pri" data-act="pbreak" data-long="1">长休 '+pm.long+'′</button>':'')+'<button class="btn ok" data-act="pnext">再专注</button><button class="btn ghost" data-act="pend">结束</button>'; }
+  if(ht)ht.textContent=hintTxt;
 }
 function tickPomo(){
   if(typeof document==='undefined')return;
@@ -1115,41 +1119,28 @@ function gradeReview(correct){
   renderReview();
 }/* ============ 统计页 ============ */
 function renderStats(){
-  var N=ui.statsRange,dates=rangeDates(N),s=rangeSummary(dates);
-  document.querySelectorAll('#stats-range button').forEach(function(b){ b.classList.toggle('on',+b.getAttribute('data-range')===N); });
-  var allMin=allTimeMin(),allP=allTimePractice(),due=dueMistakes().length;
-  var taskRate=s.totalTasks?Math.round(s.done/s.totalTasks*100):null;
-  var pRate=pctStr(s.pCor,s.pTot);
-  var cards=''
-    +'<div class="stat"><span class="lab">近'+N+'天专注</span><div class="num">'+fmtDur(s.focus)+'</div><div class="sub">日均 '+fmtDur(Math.round(s.focus/N))+'</div></div>'
-    +'<div class="stat"><span class="lab">累计专注（全部）</span><div class="num">'+fmtDur(allMin)+'</div><div class="sub">记录 '+Object.keys(data.days).length+' 天</div></div>'
-    +'<div class="stat"><span class="lab">近'+N+'天做题</span><div class="num">'+s.pTot+'<small> 题</small></div><div class="sub">做对 '+s.pCor+' · '+rateHtml(s.pCor,s.pTot)+'</div></div>'
-    +'<div class="stat"><span class="lab">近'+N+'天任务完成率</span><div class="num">'+(taskRate==null?'—':taskRate+'<small>%</small>')+'</div><div class="sub">完成 '+s.done+' / '+s.totalTasks+' · 放弃 '+s.ab+'</div></div>'
-    +'<div class="stat"><span class="lab">今日待复习错题</span><div class="num">'+due+'<small> 题</small></div><div class="sub">错题本复习队列</div></div>';
-  $('#stats-cards').innerHTML=cards;
-  var focusItems=dates.map(function(d){return {label:fmtCNshort(d),value:aggDay(d).focus};});
-  $('#chart-focus').innerHTML=cssBars(focusItems,{every:5,color:'var(--accent)'});
-  var segs=Object.keys(s.subjMin).map(function(k){ return {name:subj(k).name,color:subj(k).color,value:s.subjMin[k]}; }).sort(function(a,b){return b.value-a.value;});
-  $('#chart-subject').innerHTML=donutHtml(segs,fmtDur(s.focus));
-  var taskItems=dates.map(function(d){ var a=aggDay(d); return {label:fmtCNshort(d),value:a.totalTasks?Math.round(a.done/a.totalTasks*100):null}; });
-  $('#chart-task').innerHTML=lineChart(taskItems,{color:'var(--accent2)'});
-  var pItems=dates.map(function(d){ var a=aggDay(d); return {label:fmtCNshort(d),value:a.pTot?pctStr(a.pCor,a.pTot):null}; });
-  $('#chart-pacc').innerHTML=lineChart(pItems,{color:'var(--accent)'});
-  var subjRows=Object.keys(practiceBySubject(dates)).map(function(k){ var o=practiceBySubject(dates)[k]; return {name:subj(k).name,color:subj(k).color,cor:o.cor,tot:o.tot}; }).sort(function(a,b){return b.tot-a.tot;});
-  $('#p-subject').innerHTML=barRows(subjRows);
-  var tagMap=practiceByTag(dates); var tagRows=Object.keys(tagMap).map(function(k){ var o=tagMap[k]; return {name:subj(o.sid).name+' · '+(o.tag||'未分类'),color:subj(o.sid).color,cor:o.cor,tot:o.tot}; }).sort(function(a,b){return b.tot-a.tot;}).slice(0,12);
-  $('#p-tag').innerHTML=barRows(tagRows);
-  /* 错题统计 */
-  var active=activeMistakes().length,mastered=data.mistakes.length-active,rs=reviewStats();
-  $('#m-stats-cards').innerHTML=miniStat('今日待复习',due,'到期队列')
+  if(typeof document==='undefined')return;
+  var totalMin=allTimeMin();
+  var tel=$('#stat-total'); if(tel)tel.innerHTML='<div class="stat-total-big">'+fmtDur(totalMin)+'</div><div class="small muted">累计专注 · 记录 '+Object.keys(data.days).length+' 天</div>';
+  var map={};
+  Object.keys(data.days).forEach(function(k){ (data.days[k].sessions||[]).forEach(function(s2){ var sid=s2.subjectId||''; map[sid]=(map[sid]||0)+(s2.minutes||0); }); });
+  var rows=data.settings.subjects.map(function(su){ return {name:su.name,color:su.color,min:map[su.id]||0}; }).sort(function(a,b){return b.min-a.min;});
+  var max=Math.max.apply(null,rows.map(function(r){return r.min;}))||1;
+  var se=$('#stat-subject');
+  if(se){
+    if(!totalMin){ se.innerHTML=emptyNote('还没有专注记录，去首页开一个番茄钟吧'); }
+    else {
+      se.innerHTML='<div class="list">'+rows.map(function(r){ var w=r.min?Math.max(3,Math.round(r.min/max*100)):0; return '<div class="listrow"><div class="t-main" style="flex:1"><div class="rowline"><span class="chip" style="background:'+r.color+'22;color:'+r.color+'"><span class="dot"></span>'+esc(r.name)+'</span></div><div class="pbar" style="margin-top:6px"><i style="width:'+w+'%;background:'+r.color+'"></i></div></div><span class="val muted" style="font-variant-numeric:tabular-nums">'+fmtDur(r.min)+'</span></div>'; }).join('')+'</div>';
+    }
+  }
+  var due=dueMistakes().length, active=activeMistakes().length, mastered=data.mistakes.length-active, rvs=reviewStats();
+  var mc=$('#m-stats-cards'); if(mc)mc.innerHTML=miniStat('今日待复习',due,'到期队列')
     +miniStat('在学中',active,'未掌握')
     +miniStat('已掌握',mastered,'完成全部轮次')
-    +miniStat('累计复习',rs.tot+' 次','答对 '+rs.cor)
-    +miniStat('复习正确率',rs.tot?pctStr(rs.cor,rs.tot)+'%':'—','全部历史');
+    +miniStat('累计复习',rvs.tot+' 次','答对 '+rvs.cor)
+    +miniStat('复习正确率',rvs.tot?pctStr(rvs.cor,rvs.tot)+'%':'—','全部历史');
   var rounds=[]; var mx=maxRounds(); for(var i=0;i<mx;i++){ var ra=roundAccuracy(i); rounds.push({name:'第 '+(i+1)+' 轮',cor:ra.cor,tot:ra.tot,color:'var(--accent)'}); }
-  $('#m-round').innerHTML=barRows(rounds);
-  var rSubj=Object.keys(reviewBySubject()).map(function(k){ var o=reviewBySubject()[k]; return {name:subj(k).name,color:subj(k).color,cor:o.cor,tot:o.tot}; });
-  $('#m-subj').innerHTML=barRows(rSubj);
+  var mr=$('#m-round'); if(mr)mr.innerHTML=barRows(rounds);
 }/* ============ 设置页 ============ */
 var PALETTE=['#e5484d','#3b82f6','#f59e0b','#8b5cf6','#0ea5a0','#ec4899','#22c55e','#64748b'];
 function renderSettings(){
@@ -1246,7 +1237,9 @@ function actionPomo(act,el){
 /* ============ 标签页与全局动作 ============ */
 function switchTab(name){
   ui.tab=name;
-  document.querySelectorAll('.btab').forEach(function(b){ b.classList.toggle('active',b.getAttribute('data-tab')===name); });
+  var navs=['home','mistake','stats','settings'];
+  document.querySelectorAll('.btab').forEach(function(b){ var t=b.getAttribute('data-tab'); b.classList.toggle('active',navs.indexOf(t)>=0&&t===name); });
+  var tb=document.querySelector('.tabbar'); if(tb)tb.style.display=(name==='record')?'none':'';
   ['home','record','mistake','stats','settings'].forEach(function(v){ var el=$('#v-'+v); if(el)el.classList.toggle('active',v===name); });
   window.scrollTo(0,0);
   if(name==='home'){ renderHome(); }
