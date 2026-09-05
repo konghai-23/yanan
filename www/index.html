@@ -345,6 +345,31 @@ button.hcard{border:0;font:inherit;color:inherit;width:100%;text-align:left;appe
 #v-home .card-h{font-size:15px;margin-bottom:8px}
 #v-home .note-line{margin-bottom:8px}
 @media (min-height:820px){ #v-home .home-content{padding-top:calc(26px + env(safe-area-inset-top))} }
+</style><style id="v5trans">
+/* ===== 强化真实透明感 ===== */
+.tabbar{
+  background:linear-gradient(180deg, rgba(255,255,255,.5), rgba(255,255,255,.24));
+  backdrop-filter:blur(34px) saturate(210%);
+  -webkit-backdrop-filter:blur(34px) saturate(210%);
+  border-color:rgba(255,255,255,.5);
+}
+html[data-theme=dark] .tabbar{
+  background:linear-gradient(180deg, rgba(38,50,78,.52), rgba(20,28,46,.3));
+  border-color:rgba(255,255,255,.2);
+}
+.tabbar::before{opacity:.4}
+html[data-theme=dark] .tabbar::before{opacity:.35}
+/* 没有 backdrop-filter 的设备：更透的纯半透明回退 */
+@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){
+  .tabbar{background:linear-gradient(180deg, rgba(255,255,255,.34), rgba(255,255,255,.16));}
+  html[data-theme=dark] .tabbar{background:linear-gradient(180deg, rgba(30,40,62,.42), rgba(16,24,40,.24));}
+}
+/* 首页遮罩整体调淡，让照片透到导航背后 */
+.home-veil{
+  background:linear-gradient(180deg, rgba(8,12,24,.5) 0%, rgba(10,15,28,.26) 32%, rgba(11,16,30,.46) 70%, rgba(9,13,26,.6) 100%);
+}
+/* 玻璃卡片也提高真实通透度（毛玻璃质感更明显） */
+#v-home .glass{background:rgba(16,22,38,.42);border-color:rgba(255,255,255,.2)}
 </style></head>
 <body>
 <script>
