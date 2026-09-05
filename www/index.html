@@ -452,12 +452,59 @@ html,body{overscroll-behavior-y:none}
 </style><style id="v7fix">
 .wrap{padding-bottom:0}
 .view:not(#v-home){padding-bottom:112px}
+</style><style id="v10dark">
+/* 深色(首页同款)玻璃卡片：应用到所有页面 */
+html[data-theme=dark] .wrap > .view:not(#v-home) .card,
+html[data-theme=dark] .wrap > .view:not(#v-home) .mstat,
+html[data-theme=dark] .wrap > .view:not(#v-home) .mini-stat{
+  background:rgba(15,20,36,.55);
+  border:1px solid rgba(255,255,255,.14);
+  -webkit-backdrop-filter:blur(22px) saturate(180%);
+  backdrop-filter:blur(22px) saturate(180%);
+  border-radius:22px;
+  box-shadow:0 14px 34px -20px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.08);
+}
+html[data-theme=dark] .wrap > .view:not(#v-home) .card .in{
+  background:rgba(255,255,255,.07);
+  border-color:rgba(255,255,255,.14);
+  color:#eef2fb;
+}
+html[data-theme=dark] .wrap > .view:not(#v-home) .card .in::placeholder{color:rgba(238,242,251,.45)}
+html[data-theme=dark] .wrap > .view:not(#v-home) .card select.in option{background:#101624;color:#eef2fb}
+html[data-theme=dark] .wrap > .view:not(#v-home) .chip.tagchip,
+html[data-theme=dark] .wrap > .view:not(#v-home) .card-h .hint{background:rgba(255,255,255,.08);color:rgba(238,242,251,.7)}
+html[data-theme=dark] .wrap > .view:not(#v-home) .card .btn{
+  background:rgba(255,255,255,.09);color:#eef2fb;border-color:rgba(255,255,255,.16);
+}
+html[data-theme=dark] .wrap > .view:not(#v-home) .card .btn.pri{background:var(--accent);border-color:transparent;color:#fff}
+html[data-theme=dark] .wrap > .view:not(#v-home) .card .btn.ok{background:var(--ok);border-color:transparent;color:#fff}
+html[data-theme=dark] .wrap > .view:not(#v-home) .card .btn.ghost{background:transparent;border-color:transparent}
+html[data-theme=dark] .wrap > .view:not(#v-home) .empty{color:rgba(238,242,251,.5)}
+html[data-theme=dark] .wrap > .view:not(#v-home) .qa-box{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1)}
+html[data-theme=dark] .wrap > .view:not(#v-home) .detail-box{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.12)}
+html[data-theme=dark] .datebar .dlabel{color:var(--text)}
+</style><style id="v11">
+@keyframes cardUp{from{opacity:0;transform:translateY(18px) scale(.995)}to{opacity:1;transform:none}}
+.view.active .card,
+.view.active .glass,
+.view.active .hcard,
+.view.active .mstat,
+.view.active .mini-stat{
+  animation:cardUp .5s cubic-bezier(.16,.84,.3,1) both;
+}
+.view.active .quote-card{animation-delay:.02s}
+.view.active .pomo-card{animation-delay:.05s}
+.view.active .home-2x{animation-delay:.09s}
+@media (prefers-reduced-motion:reduce){
+  .view.active .card,.view.active .glass,.view.active .hcard,.view.active .mstat,.view.active .mini-stat{animation:none}
+}
 </style></head>
 <body>
 <script>
 'use strict';/* ============ 常量与工具 ============ */
 const LS_KEY='kaoyan_daka_v1';
 const LS_TIMER='kaoyan_timer_v1';
+const LS_LAUNCH='kaoyan_launch_v1';
 const FALLBACK_INTERVALS=[1,3,7,14,30];
 const MAX_BYTES=5*1024*1024;
 let _seq=Date.now()%1000000;
@@ -483,7 +530,7 @@ function defaultSubjects(){ return [
  {id:'math',name:'数学',color:'#f59e0b'},
  {id:'maj',name:'专业课',color:'#8b5cf6'}
 ]; }
-function defaultSettings(){ return {subjects:defaultSubjects(),dailyGoalMin:480,pomodoro:{focus:25,short:5,long:15,longEvery:4},reviewIntervals:FALLBACK_INTERVALS.slice(),examDate:'',theme:'auto',useDailyBg:true}; }
+function defaultSettings(){ return {subjects:defaultSubjects(),dailyGoalMin:480,pomodoro:{focus:25,short:5,long:15,longEvery:4},reviewIntervals:FALLBACK_INTERVALS.slice(),examDate:'',theme:'dark',useDailyBg:true}; }
 function defaultData(){ return {version:1,settings:defaultSettings(),days:{},mistakes:[]}; }
 function defaultTimer(){ return {phase:'idle',running:false,startTs:0,accMs:0,subjectId:'',tag:'',streak:0,dur:null}; }
 let data=defaultData();
@@ -630,10 +677,10 @@ var LAYOUT = `
       <div class="pomo-today" id="pomo-today"></div>
     </div>
     <div class="home-2x">
-      <button class="hcard glass" data-act="tab" data-tab="mistake">
+      <button class="hcard glass" data-act="tab" data-tab="mlist">
         <span class="lab">📕 待复习</span>
         <span class="num" id="home-due">0<small> 题</small></span>
-        <span class="sub">点击开始今日复习</span>
+        <span class="sub">点击查看与复习错题</span>
       </button>
       <button class="hcard glass" data-act="tab" data-tab="record">
         <span class="lab">📌 今日任务</span>
@@ -693,40 +740,53 @@ var LAYOUT = `
   </div>
 </section>
 <section class="view" id="v-mistake">
-  <div class="page-head"><h2>📕 错题本</h2><span class="ph-sub">多轮间隔复习 · 答错重置第1轮</span></div>
-  <div class="card" style="margin-top:14px">
-    <div class="rowline" style="justify-content:space-between;flex-wrap:wrap;gap:10px">
-      <div style="flex:1"></div>
-      <button class="btn ok" data-act="startreview">▶ 开始今日复习<span id="m-due-label"></span></button>
-    </div>
-    <div class="mt10" id="m-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px"></div>
-    <div class="note-line mt10 reveal-hide" id="m-empty-note">🎉 今天没有到期的错题，去录入新错题或提前复习吧。</div>
+  <div class="page-head"><h2>📕 录入错题</h2><span class="ph-sub">已录错题请在首页「待复习」中查看与复习</span></div>
+  <div class="card">
+    <div class="card-h" id="m-form-title">➕ 录入错题</div>
+    <form id="m-form" autocomplete="off">
+      <div class="rowline">
+        <div class="field" style="flex:1"><label class="f">科目</label><select class="in subj-sel" id="m-subject"></select></div>
+        <div class="field" style="flex:1"><label class="f">内容标签（章节/题型）</label><input class="in" id="m-tag" list="tag-suggest3" placeholder="如：极限计算"></div>
+        <datalist id="tag-suggest3"></datalist>
+      </div>
+      <div class="field"><label class="f">题干 *</label><textarea class="in" id="m-q" rows="3" placeholder="把题目抄写/粘贴到这里"></textarea></div>
+      <div class="field"><label class="f">答案与解析 *</label><textarea class="in" id="m-a" rows="3" placeholder="正确答案、解题步骤、关键思路"></textarea></div>
+      <div class="rowline">
+        <div class="field" style="flex:2;min-width:200px"><label class="f">错因（可选）</label><input class="in" id="m-r" placeholder="如：公式记错 / 思路卡壳"></div>
+        <div class="field" style="flex:1;min-width:160px"><label class="f">题目照片（可选，自动压缩）</label><input class="in" id="m-img" type="file" accept="image/*" style="padding:6px"></div>
+      </div>
+      <div class="qa-img reveal-hide" id="m-img-prev"></div>
+      <div class="rowline mt10">
+        <button class="btn pri" type="submit" id="m-save-btn">保存错题</button>
+        <button class="btn ghost reveal-hide" type="button" id="m-cancel">取消编辑</button>
+      </div>
+    </form>
   </div>
+</section>
+
+<section class="view" id="v-mlist">
+  <div class="page-head rec-head"><button class="btn ghost" data-act="tab" data-tab="home">‹ 返回首页</button><h2 style="margin-left:4px">📕 错题复习</h2></div>
   <div class="card mt16 reveal-hide" id="m-review"></div>
-  <div class="grid2 mt16" id="m-main">
-    <div class="card">
-      <div class="card-h" id="m-form-title">➕ 录入错题</div>
-      <form id="m-form" autocomplete="off">
-        <div class="rowline">
-          <div class="field" style="flex:1"><label class="f">科目</label><select class="in subj-sel" id="m-subject"></select></div>
-          <div class="field" style="flex:1"><label class="f">内容标签（章节/题型）</label><input class="in" id="m-tag" list="tag-suggest3" placeholder="如：极限计算"></div>
-          <datalist id="tag-suggest3"></datalist>
-        </div>
-        <div class="field"><label class="f">题干 *</label><textarea class="in" id="m-q" rows="3" placeholder="把题目抄写/粘贴到这里"></textarea></div>
-        <div class="field"><label class="f">答案与解析 *</label><textarea class="in" id="m-a" rows="3" placeholder="正确答案、解题步骤、关键思路"></textarea></div>
-        <div class="rowline">
-          <div class="field" style="flex:2;min-width:200px"><label class="f">错因（可选）</label><input class="in" id="m-r" placeholder="如：公式记错 / 思路卡壳"></div>
-          <div class="field" style="flex:1;min-width:160px"><label class="f">题目照片（可选，自动压缩）</label><input class="in" id="m-img" type="file" accept="image/*" style="padding:6px"></div>
-        </div>
-        <div class="qa-img reveal-hide" id="m-img-prev"></div>
-        <div class="rowline mt10">
-          <button class="btn pri" type="submit" id="m-save-btn">保存错题</button>
-          <button class="btn ghost reveal-hide" type="button" id="m-cancel">取消编辑</button>
-        </div>
-      </form>
+    <div class="card" style="margin-top:14px">
+      <div class="card-h">📄 随机组卷（PDF 自测） <span class="hint">从错题随机抽题，导出 PDF 打印</span></div>
+      <div class="rowline" style="flex-wrap:wrap">
+        <div class="field" style="flex:0 0 auto"><label class="f">题目数量</label><input class="in numsmall" id="paper-count" type="number" min="1" max="999" value="5" style="width:84px"></div>
+        <span class="small muted" id="paper-total" style="align-self:center"></span>
+        <label class="switchline" style="display:flex;align-items:center;gap:6px;font-size:13px;margin-left:12px"><input type="checkbox" id="paper-answers" checked> 附答案解析（放卷尾）</label>
+      </div>
+      <button class="btn pri mt10" data-act="makepaper">🎲 随机抽题生成 PDF</button>
     </div>
-    <div class="card">
-      <div class="card-h">📋 错题列表</div>
+  <div id="mlist-main">
+    <div class="card" style="margin-top:14px">
+      <div class="rowline" style="justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div class="card-h" style="margin:0">待复习队列</div>
+        <button class="btn ok" data-act="startreview">▶ 开始今日复习<span id="m-due-label"></span></button>
+      </div>
+      <div class="mt10" id="m-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px"></div>
+      <div class="note-line mt10 reveal-hide" id="m-empty-note">🎉 今天没有到期的错题，可到底部「错题」页录入，或在列表里提前复习。</div>
+    </div>
+    <div class="card mt16">
+      <div class="card-h">📋 全部错题 <span class="hint">新错题在底部「错题」页录入</span></div>
       <div class="filterbar">
         <select class="in" id="m-f-subject"><option value="all">全部科目</option></select>
         <select class="in" id="m-f-status">
@@ -741,16 +801,11 @@ var LAYOUT = `
   </div>
 </section>
 <section class="view" id="v-stats">
-  <div class="page-head"><h2>📊 统计</h2><span class="ph-sub">累计各科时长 · 错题</span></div>
+  <div class="page-head"><h2>📊 统计</h2><span class="ph-sub">累计各科专注时长</span></div>
   <div class="card">
     <div class="card-h">⏱ 累计各科专注时长 <span class="hint">全部历史累计</span></div>
     <div id="stat-total" class="stat-total"></div>
     <div id="stat-subject" class="mt10"></div>
-  </div>
-  <div class="card mt16">
-    <div class="card-h">📕 错题统计 <span class="hint">全部历史</span></div>
-    <div id="m-stats-cards" class="grid-stats"></div>
-    <div class="mt16"><div class="section-title">各轮次复习正确率</div><div id="m-round" class="mt10"></div></div>
   </div>
 </section>
 <section class="view" id="v-settings">
@@ -817,7 +872,7 @@ var LAYOUT = `
 function $(sel){ return document.querySelector(sel); }
 function toast(msg){ var w=document.getElementById('toastwrap'); if(!w){ w=document.createElement('div'); w.id='toastwrap'; document.body.appendChild(w); } var t=document.createElement('div'); t.className='toast'; t.textContent=msg; w.appendChild(t); setTimeout(function(){ t.style.transition='opacity .4s'; t.style.opacity='0'; setTimeout(function(){ t.remove(); },400); },2600); }
 function updateStoreMeter(){ if(typeof document==='undefined')return; var el=document.getElementById('store-meter'); if(!el)return; try{ var bytes=new TextEncoder().encode(JSON.stringify(data)).length; var mb=(bytes/1024/1024).toFixed(2); var pct=Math.min(100,bytes/MAX_BYTES*100); el.querySelector('i').style.width=pct+'%'; el.classList.toggle('warn',pct>60&&pct<=85); el.classList.toggle('full',pct>85); var n=document.getElementById('store-num'); if(n)n.textContent=mb+' MB'; }catch(e){} }
-function applyTheme(){ var mode=data.settings.theme; var dark=mode==='dark'||(mode==='auto'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches); document.documentElement.setAttribute('data-theme',dark?'dark':'light'); try{ if(window.AndroidTheme)window.AndroidTheme.apply(dark?'dark':'light'); }catch(e){} }
+function applyTheme(){ var mode=data.settings.theme; var dark = mode!=='light'; document.documentElement.setAttribute('data-theme',dark?'dark':'light'); try{ if(window.AndroidTheme)window.AndroidTheme.apply(dark?'dark':'light'); }catch(e){} }
 function refreshTagDatalists(){ ['tag-suggest','tag-suggest2','tag-suggest3'].forEach(function(dlId){ var dl=document.getElementById(dlId); if(!dl)return; var sidEl=dlId==='tag-suggest'?$('#practice-subject'):dlId==='tag-suggest2'?$('#manual-subject'):$('#m-subject'); var sid=sidEl?sidEl.value:''; var tags={}; Object.keys(data.days).forEach(function(k){ (data.days[k].practice||[]).forEach(function(p){ if(p.subjectId===sid&&p.tag)tags[p.tag]=1; }); (data.days[k].sessions||[]).forEach(function(s){ if(s.subjectId===sid&&s.tag)tags[s.tag]=1; }); }); data.mistakes.forEach(function(m){ if(m.subjectId===sid&&m.tag)tags[m.tag]=1; }); var opts=Object.keys(tags).sort(); dl.innerHTML=opts.map(function(t){return '<option value="'+escDl(t)+'"></option>';}).join(''); }); }
 function fillSubjectOptions(){ document.querySelectorAll('.subj-sel').forEach(function(sel){ var cur=sel.value; subjectOptions(sel,data.settings.subjects.some(function(x){return x.id===cur;})?cur:''); }); refreshTagDatalists(); }
 
@@ -1011,14 +1066,33 @@ function mistakeFind(id){ return data.mistakes.find(function(m){return m.id===id
 /* ============ 首页（第二代） ============ */
 var QUOTES=[{"en":"The secret of getting ahead is getting started.","cn":"前进的秘诀，在于开始行动。"},{"en":"Discipline is the bridge between goals and accomplishment.","cn":"自律，是目标与成就之间的桥梁。"},{"en":"It always seems impossible until it is done.","cn":"在真正完成之前，它总是显得不可能。"},{"en":"Success is the sum of small efforts, repeated day in and day out.","cn":"成功，是日复一日重复的小努力的加总。"},{"en":"Do not pray for an easy life; pray for the strength to endure a difficult one.","cn":"不要祈祷轻松的人生，要祈祷扛住艰难的力量。"},{"en":"The best time to plant a tree was 20 years ago. The second best time is now.","cn":"种树最好的时间是二十年前，其次就是现在。"},{"en":"Push yourself, because no one else is going to do it for you.","cn":"逼自己一把——没有人会替你努力。"},{"en":"Great things never come from comfort zones.","cn":"伟大的事，从不会来自舒适区。"},{"en":"Dream big and dare to fail.","cn":"敢于梦想，也敢于失败。"},{"en":"Act as if what you do makes a difference. It does.","cn":"像你所做的能改变世界那样去做——它确实能。"},{"en":"Don't watch the clock; do what it does. Keep going.","cn":"别只盯着钟表，要像它一样一直走下去。"},{"en":"Strive for progress, not perfection.","cn":"追求进步，而非完美。"},{"en":"Hardships often prepare ordinary people for an extraordinary destiny.","cn":"艰难，常常是在为平凡人准备非凡的命运。"},{"en":"The pain you feel today will be the strength you feel tomorrow.","cn":"今天的痛苦，会成为明天的力量。"},{"en":"Small daily improvements are the key to staggering long-term results.","cn":"每天一点小进步，是惊人长期成果的关键。"},{"en":"You don't have to be great to start, but you have to start to be great.","cn":"你不必足够优秀才能开始，但必须开始才能变得优秀。"},{"en":"Believe you can and you're halfway there.","cn":"相信自己可以，你就已经走完一半了。"},{"en":"Focus on your goal. Do not look in any direction but ahead.","cn":"专注于你的目标，只看向前方。"},{"en":"It does not matter how slowly you go as long as you do not stop.","cn":"走得慢并不可怕，只要你别停下。"},{"en":"Energy and persistence conquer all things.","cn":"精力与坚持，能征服一切。"},{"en":"Learning never exhausts the mind.","cn":"学习，永远不会让头脑疲惫。"},{"en":"The expert in anything was once a beginner.","cn":"任何领域的专家，都曾是初学者。"},{"en":"Your only limit is your mind.","cn":"你唯一的限制，是你的想法。"},{"en":"One hour of study a day is more than most people ever do.","cn":"每天学习一小时，已经超过大多数人了。"}];
 var BG_GRADS=["linear-gradient(160deg,#0f2027,#203a43,#2c5364)","linear-gradient(160deg,#1a2a6c,#b21f1f,#fdbb2d)","linear-gradient(160deg,#141e30,#243b55)","linear-gradient(160deg,#0f0c29,#302b63,#24243e)","linear-gradient(160deg,#232526,#414345)","linear-gradient(160deg,#134e5e,#71b280)","linear-gradient(160deg,#373b44,#4286f4)","linear-gradient(160deg,#41295a,#2f0743)"];
+var launch={quoteIdx:-1,bgSeed:'',gradIdx:-1};
+function loadLaunch(){ try{ var r=storeGet(LS_LAUNCH); if(r)launch=Object.assign({quoteIdx:-1,bgSeed:'',gradIdx:-1},JSON.parse(r)); }catch(e){} }
+function saveLaunch(){ storeSet(LS_LAUNCH,JSON.stringify(launch)); }
+function pickLaunchRandom(){
+  var qi=Math.floor(Math.random()*QUOTES.length);
+  if(launch.quoteIdx>=0&&QUOTES.length>1&&qi===launch.quoteIdx)qi=(qi+1)%QUOTES.length;
+  launch.quoteIdx=qi;
+  var gi=Math.floor(Math.random()*BG_GRADS.length);
+  if(launch.gradIdx>=0&&BG_GRADS.length>1&&gi===launch.gradIdx)gi=(gi+1)%BG_GRADS.length;
+  launch.gradIdx=gi;
+  var seed='s'+Math.random().toString(36).slice(2,10);
+  var tries=0;
+  while(seed===launch.bgSeed&&tries++<5){ seed='s'+Math.random().toString(36).slice(2,10); }
+  launch.bgSeed=seed;
+  saveLaunch();
+}
 function dayNum(){ return parseInt(todayStr().replace(/-/g,''),10); }
 function renderActive(){ if(ui.tab==='home')renderHome(); else if(ui.tab==='record')renderRecord(); }
+function bgImageUrl(){ return 'https://picsum.photos/seed/'+(launch.bgSeed||('kaoyan-'+todayStr()))+'/900/1600'; }
+function preloadBg(){ if(data.settings.useDailyBg===false)return; try{ var im=new Image(); im.src=bgImageUrl(); }catch(e){} }
 function applyDailyBg(){
   var el=$('#home-bg'); if(!el)return;
-  var grad=BG_GRADS[dayNum()%BG_GRADS.length];
+  var gi=(launch.gradIdx>=0&&launch.gradIdx<BG_GRADS.length)?launch.gradIdx:(dayNum()%BG_GRADS.length);
+  var grad=BG_GRADS[gi];
   el.style.background=grad;
   if(data.settings.useDailyBg===false)return;
-  var url='https://picsum.photos/seed/kaoyan-'+todayStr()+'/900/1600';
+  var url=bgImageUrl();
   var img=new Image();
   img.onload=function(){ el.style.background='url("'+url+'") center/cover no-repeat #12182b'; };
   img.onerror=function(){ /* 保持渐变 */ };
@@ -1026,7 +1100,8 @@ function applyDailyBg(){
 }
 function renderQuote(){
   var el=$('#quote-card'); if(!el)return;
-  var q=QUOTES[dayNum()%QUOTES.length];
+  var qi=(launch.quoteIdx>=0&&launch.quoteIdx<QUOTES.length)?launch.quoteIdx:(dayNum()%QUOTES.length);
+  var q=QUOTES[qi];
   el.innerHTML='<div class="quote-en">“'+esc(q.en)+'”</div><div class="quote-cn">—— '+esc(q.cn)+'</div>';
 }
 function renderHome(){
@@ -1068,6 +1143,142 @@ function fillPomoToday(){
   var goal=data.settings.dailyGoalMin||1; var pct=Math.min(100,Math.round(focus/goal*100));
   el.innerHTML='<div class="pt-row"><span>⏱ 今日专注</span><b>'+fmtDur(focus)+'</b><span class="pt-goal">目标 '+goal+' 分钟 · '+pct+'%</span></div><div class="pbar"><i style="width:'+pct+'%"></i></div>';
 }
+/* ============ 随机组卷 PDF ============ */
+function durlToBytes(u){ var b=atob(u.split(',')[1]); var a=new Uint8Array(b.length); for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i); return a; }
+function shuffleCopy(arr){ var a=arr.slice(); for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+function buildPdf(pages){
+  var enc=new TextEncoder();
+  var parts=[]; var offsets=[]; var total=0;
+  function addRaw(bytes){ parts.push(bytes); total+=bytes.length; }
+  function addObj(bytes){ offsets.push(total); parts.push(bytes); total+=bytes.length; }
+  function S(str){ return enc.encode(str); }
+  addRaw(new Uint8Array([0x25,0x50,0x44,0x46,0x2D,0x31,0x2E,0x34,0x0A,0x25,0xE2,0xE3,0xCF,0xD3,0x0A]));
+  offsets.push(0);
+  var N=pages.length;
+  var kids=[]; for(var i=0;i<N;i++)kids.push(String(3+i*3)+' 0 R');
+  addObj(S('1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n'));
+  addObj(S('2 0 obj\n<< /Type /Pages /Kids ['+kids.join(' ')+'] /Count '+N+' >>\nendobj\n'));
+  for(var k=0;k<N;k++){
+    var pg=pages[k]; var img=pg.bytes; var pid=3+k*3, cid=pid+1, iid=pid+2;
+    addObj(S(pid+' 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 '+pg.w+' '+pg.h+'] /Resources << /XObject << /Im0 '+iid+' 0 R >> >> /Contents '+cid+' 0 R >>\nendobj\n'));
+    var content='q\n'+pg.w+' 0 0 '+pg.h+' 0 0 cm\n/Im0 Do\nQ';
+    var cbytes=S(content);
+    addObj(S(cid+' 0 obj\n<< /Length '+cbytes.length+' >>\nstream\n'));
+    addRaw(cbytes);
+    addRaw(S('\nendstream\nendobj\n'));
+    addObj(S(iid+' 0 obj\n<< /Type /XObject /Subtype /Image /Width '+pg.w+' /Height '+pg.h+' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length '+img.length+' >>\nstream\n'));
+    addRaw(img);
+    addRaw(S('\nendstream\nendobj\n'));
+  }
+  var xref=total;
+  var x='xref\n0 '+offsets.length+'\n';
+  x+='0000000000 65535 f \n';
+  for(var m=1;m<offsets.length;m++){ x+=('0000000000'+offsets[m]).slice(-10)+' 00000 n \n'; }
+  addRaw(S(x));
+  addRaw(S('trailer\n<< /Size '+offsets.length+' /Root 1 0 R >>\nstartxref\n'+xref+'\n%%EOF\n'));
+  var out=new Uint8Array(total);
+  var pos=0; for(var q=0;q<parts.length;q++){ out.set(parts[q],pos); pos+=parts[q].length; }
+  return out;
+}
+function paperCanvas(){ var c=document.createElement('canvas'); c.width=1240; c.height=1754; return c; }
+function paperCtx(c){ var x=c.getContext('2d'); x.fillStyle='#ffffff'; x.fillRect(0,0,c.width,c.height); return x; }
+function wrapText(t,maxW){
+  var ctx=document.createElement('canvas').getContext('2d');
+  ctx.font='18px "PingFang SC","Microsoft YaHei",sans-serif';
+  var out=[];
+  String(t==null?'':t).split(String.fromCharCode(10)).forEach(function(seg){
+    var line='';
+    for(var i=0;i<seg.length;i++){
+      var ch=seg.charAt(i);
+      var test=line+ch;
+      if(ctx.measureText(test).width>maxW&&line!==''){ out.push(line); line=ch; } else { line=test; }
+    }
+    if(line!=='')out.push(line); else if(seg==='')out.push('');
+  });
+  return out;
+}
+function downloadBytes(bytes,name){
+  try{ window.__lastPdf={len:bytes.length,head:String.fromCharCode(bytes[0],bytes[1],bytes[2],bytes[3],bytes[4])}; }catch(e){}
+  var blob=new Blob([bytes],{type:'application/pdf'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a'); a.href=url; a.download=name;
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ try{ URL.revokeObjectURL(url); if(a.parentNode)a.parentNode.removeChild(a); }catch(e){} },4000);
+}
+async function generatePaperPDF(items,withAnswers){
+  var W=1240,H=1754,M=72,fb='"PingFang SC","Microsoft YaHei",sans-serif';
+  var canvas=paperCanvas(); var ctx=paperCtx(canvas);
+  var pages=[]; var y=M; var first=true; var hasContent=false;
+  function flushLast(){ if(hasContent)pages.push({w:canvas.width,h:canvas.height,bytes:durlToBytes(canvas.toDataURL('image/jpeg',0.82))}); }
+  function flushNew(){ if(hasContent){ pages.push({w:canvas.width,h:canvas.height,bytes:durlToBytes(canvas.toDataURL('image/jpeg',0.82))}); } canvas=paperCanvas(); ctx=paperCtx(canvas); y=M; hasContent=false; first=false; }
+  function ensure(h){ if(y+h>H-M && y>M){ flushNew(); } }
+  function line(text,font,color,maxW,lh,align){
+    ensure(lh);
+    ctx.font=font; ctx.fillStyle=color; ctx.textBaseline='middle'; ctx.textAlign=align||'left';
+    var lines=wrapText(text,maxW);
+    if(lines.length===0)lines=[''];
+    for(var i=0;i<lines.length;i++){ if(i>0){ ensure(lh); } ctx.fillText(lines[i], align==='center'?W/2:M, y+lh/2); y+=lh; hasContent=true; }
+  }
+  function imgBlock(durl){
+    return new Promise(function(resolve){
+      var im=new Image();
+      im.onload=function(){
+        var maxW=W-2*M, maxH=Math.min(420,H-M*2-60);
+        var sc=Math.min(1,maxW/im.naturalWidth,maxH/im.naturalHeight);
+        var w=Math.round(im.naturalWidth*sc), h=Math.round(im.naturalHeight*sc);
+        ensure(h+12);
+        ctx.drawImage(im,M,y,w,h);
+        y+=h+12; hasContent=true; resolve();
+      };
+      im.onerror=function(){ resolve(); };
+      im.src=durl;
+    });
+  }
+  if(first){
+    y=M+10;
+    line('考研错题自测卷','bold 34px '+fb,'#111827',W-2*M,52,'center');
+    line('共 '+items.length+' 题 · '+todayStr(),'18px '+fb,'#6b7280',W-2*M,34,'center');
+    line('姓名：__________　限时：______ 分钟　得分：______','17px '+fb,'#374151',W-2*M,36,'center');
+    y+=14; first=false;
+  }
+  var cache={};
+  for(var i=0;i<items.length;i++){
+    var it=items[i];
+    var subjName=subj(it.subjectId).name;
+    line('题目 '+(i+1)+'　['+subjName+(it.tag?' · '+it.tag:'')+']','bold 21px '+fb,'#111827',W-2*M,46,'left');
+    line(it.question||'','18px '+fb,'#1f2937',W-2*M,32,'left');
+    if(it.image){ await imgBlock(it.image); }
+    var ansLines=withAnswers?3:5;
+    for(var a=0;a<ansLines;a++){ ensure(30); ctx.strokeStyle='#cbd5e1'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(M+8,y+12); ctx.lineTo(W-M,y+12); ctx.stroke(); y+=30; hasContent=true; }
+  }
+  if(withAnswers&&items.length){
+    ensure(20);
+    line('参考答案与解析','bold 26px '+fb,'#0f766e',W-2*M,48,'left');
+    for(var b=0;b<items.length;b++){
+      var it2=items[b];
+      line('第 '+(b+1)+' 题 · '+subj(it2.subjectId).name+(it2.tag?' · '+it2.tag:'')+(it2.reason?'　[错因：'+it2.reason+']':''),'bold 17px '+fb,'#111827',W-2*M,34,'left');
+      line(it2.answer||'', '17px '+fb, '#334155', W-2*M, 30, 'left');
+    }
+  }
+  flushLast();
+  if(!pages.length){ return null; }
+  return buildPdf(pages);
+}
+function makePaper(){
+  if(!data.mistakes.length){ toast('还没有错题，先去录入几道吧'); return; }
+  var cnt=parseInt((document.getElementById('paper-count')||{}).value,10);
+  var pool=data.mistakes.slice();
+  if(isNaN(cnt))cnt=5;
+  cnt=Math.max(1,Math.min(cnt,pool.length));
+  var answers=document.getElementById('paper-answers')?document.getElementById('paper-answers').checked:true;
+  var items=shuffleCopy(pool).slice(0,cnt);
+  toast('正在生成试卷…');
+  generatePaperPDF(items,answers).then(function(bytes){
+    if(!bytes){ toast('生成失败'); return; }
+    downloadBytes(bytes,'考研错题自测-'+todayStr()+'.pdf');
+    toast('已生成 '+cnt+' 题试卷（PDF），请查看下载');
+  }).catch(function(e){ toast('生成失败：'+(e&&e.message||e)); });
+}
 function renderMistakes(){
   var due=dueMistakes(),active=activeMistakes(),mastered=data.mistakes.length-active.length;
   var rs=reviewStats();
@@ -1080,6 +1291,7 @@ function renderMistakes(){
     +miniStat('累计复习',rs.tot+' 次','答对 '+rs.cor+' 次')
     +miniStat('复习正确率',rs.tot?pctStr(rs.cor,rs.tot)+'%':'—','全部历史复习');
   $('#m-stats').innerHTML=statsHtml;
+  var pt=$('#paper-total'); if(pt)pt.textContent='共 '+data.mistakes.length+' 题，最多可全抽';
   renderMistakeList();
 }
 function miniStat(lab,num,sub){ return '<div class="mini-stat"><div class="lab">'+esc(lab)+'</div><div class="num">'+num+'</div><div class="sub">'+esc(sub)+'</div></div>'; }
@@ -1135,12 +1347,14 @@ function submitMistake(){
   var sid=$('#m-subject').value,tag=$('#m-tag').value.trim(),reason=$('#m-r').value.trim();
   if(ui.mEditId){ var m=mistakeFind(ui.mEditId); if(m){ m.question=q;m.answer=a;m.reason=reason;m.tag=tag;m.subjectId=sid;m.image=ui.mImgData; save(); toast('已保存修改'); } }
   else { var iv=reviewIntervals(); data.mistakes.push({id:uid(),subjectId:sid,tag:tag,question:q,answer:a,reason:reason,image:ui.mImgData,createdAt:todayStr(),stage:0,dueDate:addDays(todayStr(),iv[0]||1),mastered:false,history:[]}); save(); toast('已加入错题本，第 1 轮复习安排在 '+(iv[0]||1)+' 天后'); }
+  var ret=ui.returnTo; ui.returnTo=null;
   clearMistakeForm(); renderMistakes(); refreshTagDatalists();
+  if(ret)switchTab(ret);
 }
 
 /* 复习流程 */
-function enterReview(){ $('#m-main').classList.add('reveal-hide'); $('#m-review').classList.remove('reveal-hide'); }
-function exitReview(){ ui.review=null; $('#m-main').classList.remove('reveal-hide'); $('#m-review').classList.add('reveal-hide'); renderMistakes(); }
+function enterReview(){ var mm=$('#mlist-main'); if(mm)mm.classList.add('reveal-hide'); var rv=$('#m-review'); if(rv)rv.classList.remove('reveal-hide'); }
+function exitReview(){ ui.review=null; var mm=$('#mlist-main'); if(mm)mm.classList.remove('reveal-hide'); var rv=$('#m-review'); if(rv)rv.classList.add('reveal-hide'); renderMistakes(); }
 function startReview(forceId){
   if(!data.mistakes.length){ toast('还没有错题，先录入一道吧'); return; }
   var due=dueMistakes(); var ids;
@@ -1190,15 +1404,8 @@ function renderStats(){
   if(se){
     se.innerHTML='<div class="list">'+rows.map(function(r){ var w=r.min?Math.max(3,Math.round(r.min/max*100)):0; return '<div class="listrow"><div class="t-main" style="flex:1"><div class="rowline"><span class="chip" style="background:'+r.color+'22;color:'+r.color+'"><span class="dot"></span>'+esc(r.name)+'</span></div><div class="pbar" style="margin-top:6px"><i style="width:'+w+'%;background:'+r.color+'"></i></div></div><span class="val muted" style="font-variant-numeric:tabular-nums">'+fmtDur(r.min)+'</span></div>'; }).join('')+'</div>';
   }
-  var due=dueMistakes().length, active=activeMistakes().length, mastered=data.mistakes.length-active, rvs=reviewStats();
-  var mc=$('#m-stats-cards'); if(mc)mc.innerHTML=miniStat('今日待复习',due,'到期队列')
-    +miniStat('在学中',active,'未掌握')
-    +miniStat('已掌握',mastered,'完成全部轮次')
-    +miniStat('累计复习',rvs.tot+' 次','答对 '+rvs.cor)
-    +miniStat('复习正确率',rvs.tot?pctStr(rvs.cor,rvs.tot)+'%':'—','全部历史');
-  var rounds=[]; var mx=maxRounds(); for(var i=0;i<mx;i++){ var ra=roundAccuracy(i); rounds.push({name:'第 '+(i+1)+' 轮',cor:ra.cor,tot:ra.tot,color:'var(--accent)'}); }
-  var mr=$('#m-round'); if(mr)mr.innerHTML=barRows(rounds);
-}/* ============ 设置页 ============ */
+}
+/* ============ 设置页 ============ */
 var PALETTE=['#e5484d','#3b82f6','#f59e0b','#8b5cf6','#0ea5a0','#ec4899','#22c55e','#64748b'];
 function renderSettings(){
   var st=data.settings;
@@ -1293,17 +1500,21 @@ function actionPomo(act,el){
 
 /* ============ 标签页与全局动作 ============ */
 function switchTab(name){
+  var prevTab=ui.tab;
   ui.tab=name;
   var navs=['home','mistake','stats','settings'];
   document.querySelectorAll('.btab').forEach(function(b){ var t=b.getAttribute('data-tab'); b.classList.toggle('active',navs.indexOf(t)>=0&&t===name); });
-  var tb=document.querySelector('.tabbar'); if(tb)tb.style.display=(name==='record')?'none':'';
-  ['home','record','mistake','stats','settings'].forEach(function(v){ var el=$('#v-'+v); if(el)el.classList.toggle('active',v===name); });
+  var tb=document.querySelector('.tabbar'); if(tb)tb.style.display=(name==='record'||name==='mlist')?'none':'';
+  ['home','record','mistake','mlist','stats','settings'].forEach(function(v){ var el=$('#v-'+v); if(el)el.classList.toggle('active',v===name); });
   window.scrollTo(0,0);
-  var docRoot=document.documentElement; if(docRoot)docRoot.style.overflow=(name==='home')?'hidden':'';
-  if(document.body)document.body.style.overflow=(name==='home')?'hidden':'';
+  var noScroll=(name==='home'||name==='mistake');
+  var docRoot=document.documentElement; if(docRoot)docRoot.style.overflow=noScroll?'hidden':'';
+  if(document.body)document.body.style.overflow=noScroll?'hidden':'';
+  if(prevTab==='home'&&name!=='home'){ pickLaunchRandom(); preloadBg(); }
   if(name==='home'){ renderHome(); }
   else if(name==='record'){ if(!ui.viewDate)ui.viewDate=todayStr(); renderRecord(); }
-  else if(name==='mistake'){ fillSubjectOptions(); if(!ui.review)renderMistakes(); }
+  else if(name==='mistake'){ fillSubjectOptions(); if(!ui.mEditId)clearMistakeForm(); }
+  else if(name==='mlist'){ fillSubjectOptions(); if(ui.review){ var mm=$('#mlist-main'); if(mm)mm.classList.add('reveal-hide'); var rv=$('#m-review'); if(rv)rv.classList.remove('reveal-hide'); renderReview(); } else { renderMistakes(); } }
   else if(name==='stats'){ renderStats(); }
   else if(name==='settings'){ renderSettings(); }
 }
@@ -1322,15 +1533,16 @@ function handleAct(act,el){
     case 'taskdel': { if(!confirm('删除这条任务？'))break; var arr=dayRec(ui.viewDate).tasks; var idx=arr.findIndex(function(x){return x.id===id;}); if(idx>=0){ arr.splice(idx,1); save(); renderTasks(); renderTodaySummary(); } break; }
     case 'delsession': { var arr2=dayRec(ui.viewDate).sessions; var i2=arr2.findIndex(function(x){return x.id===id;}); if(i2>=0){ arr2.splice(i2,1); save(); renderSessions(); renderTodaySummary(); } break; }
     case 'delpractice': { var arr3=dayRec(ui.viewDate).practice; var i3=arr3.findIndex(function(x){return x.id===id;}); if(i3>=0){ arr3.splice(i3,1); save(); renderPractice(); refreshTagDatalists(); } break; }
-    case 'startreview': switchTab('mistake'); setTimeout(function(){ startReview(null); },30); break;
-    case 'mreview': switchTab('mistake'); setTimeout(function(){ startReview(id); },30); break;
+    case 'startreview': switchTab('mlist'); setTimeout(function(){ startReview(null); },30); break;
+    case 'mreview': switchTab('mlist'); setTimeout(function(){ startReview(id); },30); break;
     case 'exitreview': exitReview(); break;
     case 'mreveal': if(ui.review){ ui.review.revealed=true; renderReview(); } break;
     case 'mright': gradeReview(true); break;
     case 'mwrong': gradeReview(false); break;
-    case 'medit': openMistakeEditor(id); break;
+    case 'medit': ui.returnTo='mlist'; switchTab('mistake'); openMistakeEditor(id); break;
     case 'mdel': { var m=mistakeFind(id); if(m&&confirm('删除这道错题？其复习记录也会一并删除。')){ data.mistakes=data.mistakes.filter(function(x){return x.id!==id;}); save(); renderMistakes(); } break; }
     case 'mopen': ui.mOpenId=(ui.mOpenId===id)?null:id; renderMistakeList(); break;
+    case 'makepaper': makePaper(); break;
     case 'mimgclear': ui.mImgData=null; $('#m-img').value=''; showMistakeImg(); break;
     case 'sdel': deleteSubject(parseInt(el.getAttribute('data-i'),10)); break;
     case 'idel': deleteInterval(parseInt(el.getAttribute('data-i'),10)); break;
@@ -1350,6 +1562,7 @@ function bindEvents(){
   var cancelBtn=document.createElement('button'); cancelBtn.type='button'; cancelBtn.className='btn ghost reveal-hide'; cancelBtn.id='task-cancel-edit'; cancelBtn.textContent='取消编辑'; cancelBtn.addEventListener('click',taskEditCancel); $('#task-form').appendChild(cancelBtn);
   var noteTimer=null;
   $('#day-note').addEventListener('input',function(){ var v=this.value,d=ui.viewDate; clearTimeout(noteTimer); noteTimer=setTimeout(function(){ dayRec(d).note=v; save(); },500); });
+  var mc=$('#m-cancel'); if(mc)mc.addEventListener('click',function(){ var t=ui.returnTo; ui.returnTo=null; clearMistakeForm(); if(t)switchTab(t); });
   $('#m-img').addEventListener('change',function(){ var f=this.files&&this.files[0]; if(!f){ return; } compressImageFile(f,function(durl){ if(durl){ ui.mImgData=durl; showMistakeImg(); toast('图片已压缩添加'); } }); });
   ['task-subject','practice-subject','manual-subject','m-subject'].forEach(function(sid){ var el=document.getElementById(sid); if(el)el.addEventListener('change',refreshTagDatalists); });
   $('#set-goal').addEventListener('change',function(){ data.settings.dailyGoalMin=clampInt(this.value,1,1440,480); save(); renderTodaySummary(); });
@@ -1373,11 +1586,12 @@ function init(){
   loadData(); loadTimer(); applyTheme();
   document.body.innerHTML=LAYOUT;
   bindEvents();
+  loadLaunch(); pickLaunchRandom();
   switchTab('home');
   setInterval(tickPomo,250);
   if(timer.phase!=='idle'){ if(timer.running&&remainingMs()<=0){ completePhase(); } else { renderPomo(); } }
   updateStoreMeter();
-  if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){ navigator.serviceWorker.register('sw.js').catch(function(){}); }
+  if('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && location.search.indexOf('debug')<0){ navigator.serviceWorker.register('sw.js').catch(function(){}); }
 }
 if(typeof document!=='undefined'&&document.body){ init(); }
 </script>

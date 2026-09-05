@@ -2,13 +2,18 @@ package com.kaoyandaka.app;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.DownloadManager;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.View;
 import android.view.WindowManager;
+import android.webkit.DownloadListener;
 import android.webkit.JavascriptInterface;
 import android.webkit.JsResult;
+import android.webkit.URLUtil;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -51,6 +56,20 @@ public class MainActivity extends Activity {
                     .setOnCancelListener(d -> r.cancel())
                     .show();
                 return true;
+            }
+        });
+        web.setDownloadListener(new DownloadListener() {
+            @Override
+            public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
+                try {
+                    DownloadManager.Request req = new DownloadManager.Request(Uri.parse(url));
+                    req.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                    String name = URLUtil.guessFileName(url, contentDisposition, mimetype);
+                    if (name == null || name.length() == 0) name = "kaoyan_paper_" + System.currentTimeMillis() + ".pdf";
+                    req.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, name);
+                    DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+                    if (dm != null) dm.enqueue(req);
+                } catch (Exception ignored) {}
             }
         });
         web.addJavascriptInterface(new ThemeBridge(), "AndroidTheme");
