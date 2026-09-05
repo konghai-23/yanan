@@ -252,7 +252,100 @@ html,body{height:100%}
   .wrap{max-width:640px;box-shadow:0 0 60px rgba(0,0,0,.06);border-left:1px solid var(--border);border-right:1px solid var(--border);min-height:100vh;background:var(--bg)}
 }
 </style>
-</head>
+<style id="v3glass">
+/* ===== 液态玻璃 底部导航（iOS 26 Liquid Glass 风格） ===== */
+.tabbar{
+  left:14px; right:14px;
+  bottom:calc(12px + env(safe-area-inset-bottom));
+  border-radius:30px;
+  border:1px solid rgba(255,255,255,.38);
+  background:rgba(255,255,255,.42);
+  backdrop-filter:blur(28px) saturate(190%);
+  -webkit-backdrop-filter:blur(28px) saturate(190%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.55),
+    inset 0 -1px 0 rgba(255,255,255,.12),
+    0 14px 40px -10px rgba(0,0,0,.35),
+    0 2px 10px rgba(0,0,0,.12);
+  overflow:hidden;
+  transition:background .3s, box-shadow .3s;
+}
+html[data-theme=dark] .tabbar{
+  background:rgba(26,35,54,.5);
+  border-color:rgba(255,255,255,.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.18),
+    inset 0 -1px 0 rgba(255,255,255,.05),
+    0 14px 40px -10px rgba(0,0,0,.6);
+}
+/* 顶部高光层（液态玻璃的“镜面反光”） */
+.tabbar::before{
+  content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; z-index:0;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.55) 0%, rgba(255,255,255,.05) 34%, rgba(255,255,255,0) 60%),
+    radial-gradient(120% 90% at 18% -30%, rgba(255,255,255,.5), rgba(255,255,255,0) 55%);
+  opacity:.8;
+}
+html[data-theme=dark] .tabbar::before{
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.22) 0%, rgba(255,255,255,.02) 36%, rgba(255,255,255,0) 60%),
+    radial-gradient(120% 90% at 18% -30%, rgba(255,255,255,.22), rgba(255,255,255,0) 55%);
+  opacity:.7;
+}
+.tabbar-in{position:relative;z-index:1;max-width:600px;padding:7px 10px calc(7px + env(safe-area-inset-bottom))}
+.btab{color:var(--muted);transition:color .25s, transform .12s}
+.btab .icw{transition:background .25s, box-shadow .25s, transform .12s}
+.btab .ic{filter:drop-shadow(0 1px 2px rgba(0,0,0,.08)); transition:transform .18s}
+.btab.active{color:var(--accent)}
+html[data-theme=light] .btab.active{color:#2f54eb}
+/* 选中项：凸起的“液态玻璃胶囊” */
+.btab.active .icw{
+  background:linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.35));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9), inset 0 -1px 0 rgba(255,255,255,.25), 0 3px 10px -2px rgba(31,58,147,.28);
+}
+html[data-theme=dark] .btab.active .icw{
+  background:linear-gradient(180deg, rgba(120,150,255,.34), rgba(90,110,220,.16));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.35), inset 0 -1px 0 rgba(0,0,0,.2), 0 3px 10px -2px rgba(0,0,0,.4);
+}
+.btab:active .ic{transform:scale(.86)}
+.btab:active{transform:translateY(1px)}
+@media (prefers-reduced-motion:no-preference){
+  .tabbar{animation:glassIn .45s cubic-bezier(.22,.9,.24,1)}
+  @keyframes glassIn{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+}
+</style><style id="v4home">
+/* ===== 首页一屏紧凑（v4） ===== */
+button.hcard{border:0;font:inherit;color:inherit;width:100%;text-align:left;appearance:none;-webkit-appearance:none}
+.hero-count{margin-top:6px;font-size:66px;letter-spacing:-1px}
+.hero-count small{font-size:.3em}
+.hero-lab{font-size:12px;letter-spacing:5px;margin-top:2px;font-weight:600;opacity:.9}
+.hero{margin-top:2px}
+.hero-tap{font-size:11px;padding:4px 10px}
+.quote-card{margin:10px 0 10px;padding:9px 14px;border-radius:18px}
+.quote-en{font-size:13px;line-height:1.5}
+.quote-cn{margin-top:3px;font-size:10.5px}
+#v-home .pomo-card{margin-top:0;padding:13px 14px 12px;border-radius:20px}
+#v-home .ring{width:118px;height:118px}
+#v-home .ring::after{inset:10px}
+#v-home .pomo-time{font-size:30px}
+#v-home .ringtxt b{font-size:17px}
+#v-home .ringtxt span{font-size:10.5px}
+#v-home .field{margin-bottom:6px}
+.home-2x{margin-top:10px;gap:10px}
+.hcard{padding:12px 13px;border-radius:20px}
+.hcard .num{font-size:25px}
+.pomo-today{margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,.16);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pt-row{display:flex;align-items:baseline;gap:7px;font-size:12px;color:rgba(255,255,255,.85);flex:1;min-width:0}
+.pt-row b{font-size:16px;color:#fff;font-weight:800}
+.pt-row .pt-goal{margin-left:auto;font-size:11px;color:rgba(255,255,255,.6);white-space:nowrap}
+.pomo-today .pbar{flex:0 0 100%;height:5px;margin-top:6px;background:rgba(255,255,255,.16);border-radius:99px;overflow:hidden}
+.pomo-today .pbar>i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#7dd3fc,#38bdf8)}
+#v-home .home-content{padding-top:calc(16px + env(safe-area-inset-top));padding-bottom:24px}
+#v-home .home-2x .hcard .sub{font-size:10.5px}
+#v-home .card-h{font-size:15px;margin-bottom:8px}
+#v-home .note-line{margin-bottom:8px}
+@media (min-height:820px){ #v-home .home-content{padding-top:calc(26px + env(safe-area-inset-top))} }
+</style></head>
 <body>
 <script>
 'use strict';/* ============ 常量与工具 ============ */
@@ -419,15 +512,15 @@ var LAYOUT = `
   <div class="home-bg" id="home-bg"></div>
   <div class="home-veil"></div>
   <div class="home-content">
-    <div class="hero">
-      <div class="hero-date" id="hero-date"></div>
+    <div class="hero" id="hero">
+      <div class="hero-lab" id="hero-lab">距考试还有</div>
       <div class="hero-count"><span id="hero-days">—</span><small>天</small></div>
-      <div class="hero-lab" id="hero-lab"></div>
     </div>
     <div class="quote-card glass" id="quote-card"></div>
     <div class="card glass pomo-card">
       <div class="card-h">🍅 番茄钟 <span class="hint" id="pomo-hint"></span></div>
       <div id="pomo-body"></div>
+      <div class="pomo-today" id="pomo-today"></div>
     </div>
     <div class="home-2x">
       <button class="hcard glass" data-act="tab" data-tab="mistake">
@@ -435,18 +528,13 @@ var LAYOUT = `
         <span class="num" id="home-due">0<small> 题</small></span>
         <span class="sub">点击开始今日复习</span>
       </button>
-      <div class="hcard glass">
-        <span class="lab">⏱ 今日时长</span>
-        <span class="num" id="home-focus">0<small> 分钟</small></span>
-        <span class="sub" id="home-focus-sub"></span>
-        <div class="pbar"><i id="home-focus-bar" style="width:0%"></i></div>
-      </div>
+      <button class="hcard glass" data-act="tab" data-tab="record">
+        <span class="lab">📌 今日任务</span>
+        <span class="num" id="home-task-num">0<small> / 0</small></span>
+        <div class="pbar"><i id="home-task-bar" style="width:0%"></i></div>
+        <span class="sub">去安排今天的学习</span>
+      </button>
     </div>
-    <button class="glass taskmini" data-act="tab" data-tab="record">
-      <span class="tm-lab">📌 今日任务</span>
-      <span class="trk"><i id="home-task-bar" style="width:0%"></i></span>
-      <span class="tm-pct" id="home-task-pct">0 / 0</span>
-    </button>
   </div>
 </section>
 <section class="view" id="v-record">
@@ -856,19 +944,19 @@ function renderHome(){
   if(typeof document==='undefined')return;
   applyDailyBg();
   var t=todayStr(),exam=data.settings.examDate;
-  var hd=$('#hero-date'); if(hd)hd.textContent='📅 '+fmtCN(t);
   var daysEl=$('#hero-days'),lab=$('#hero-lab');
-  var hero=document.querySelector('.hero');
   var sm=document.querySelector('.hero-count small');
-  if(exam){ if(sm)sm.textContent='天';
+  var hero=document.getElementById('hero');
+  if(exam){
     var diff=diffDays(t,exam);
+    if(sm)sm.textContent='天';
     if(daysEl)daysEl.textContent=(diff>0?diff:0);
-    if(lab){ lab.className='hero-lab'; lab.textContent=diff>0?('距离 '+exam+' 考试'):(diff===0?'今天就是考试日，稳住心态！':'考试已过 '+(-diff)+' 天'); }
+    if(lab){ lab.className='hero-lab'; lab.textContent=diff>0?'距考试还有':(diff===0?'就是今天，稳住！':'已考完 '+(-diff)+' 天'); }
     if(hero){ hero.removeAttribute('data-act'); hero.removeAttribute('data-tab'); hero.style.cursor='default'; }
   } else {
     if(sm)sm.textContent='';
     if(daysEl)daysEl.textContent='—';
-    if(lab){ lab.className='hero-lab unset'; lab.innerHTML='还没有设置考试日期 <span class="hero-tap">点这里去设置 →</span>'; }
+    if(lab){ lab.className='hero-lab unset'; lab.textContent='设置考试日期'; }
     if(hero){ hero.setAttribute('data-act','tab'); hero.setAttribute('data-tab','settings'); hero.style.cursor='pointer'; }
   }
   renderQuote();
@@ -877,19 +965,19 @@ function renderHome(){
 }
 function renderHomeCards(){
   var t=todayStr(),rec=data.days[t]||null;
-  var focus=0,done=0,tt=0; if(rec){
-    (rec.sessions||[]).forEach(function(x){focus+=x.minutes||0;});
-    (rec.tasks||[]).forEach(function(x){tt++; if(x.status==='done')done++;});
-  }
-  var goal=data.settings.dailyGoalMin||1;
-  var pct=Math.min(100,Math.round(focus/goal*100));
+  var done=0,tt=0; if(rec){ (rec.tasks||[]).forEach(function(x){tt++; if(x.status==='done')done++;}); }
   var due=dueMistakes().length;
   var dueEl=$('#home-due'); if(dueEl)dueEl.innerHTML=due+'<small> 题</small>';
-  var fEl=$('#home-focus'); if(fEl)fEl.innerHTML=focus+'<small> 分钟</small>';
-  var fsEl=$('#home-focus-sub'); if(fsEl)fsEl.textContent='目标 '+goal+' 分钟 · '+pct+'%';
-  var fb=$('#home-focus-bar'); if(fb)fb.style.width=pct+'%';
+  var nm=$('#home-task-num'); if(nm)nm.innerHTML=done+'<small> / '+tt+'</small>';
   var tb=$('#home-task-bar'); if(tb)tb.style.width=(tt?Math.round(done/tt*100):0)+'%';
-  var tp=$('#home-task-pct'); if(tp)tp.textContent=done+' / '+tt;
+  fillPomoToday();
+}
+function fillPomoToday(){
+  var el=$('#pomo-today'); if(!el)return;
+  var rec=data.days[todayStr()]||null; var focus=0;
+  if(rec)(rec.sessions||[]).forEach(function(x){focus+=x.minutes||0;});
+  var goal=data.settings.dailyGoalMin||1; var pct=Math.min(100,Math.round(focus/goal*100));
+  el.innerHTML='<div class="pt-row"><span>⏱ 今日专注</span><b>'+fmtDur(focus)+'</b><span class="pt-goal">目标 '+goal+' 分钟 · '+pct+'%</span></div><div class="pbar"><i style="width:'+pct+'%"></i></div>';
 }
 function renderMistakes(){
   var due=dueMistakes(),active=activeMistakes(),mastered=data.mistakes.length-active.length;
