@@ -3,6 +3,11 @@ package com.kaoyandaka.app;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
+import android.content.Intent;
+import android.provider.MediaStore;
+import android.webkit.ValueCallback;
+import androidx.core.content.FileProvider;
+import java.io.File;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
@@ -21,6 +26,9 @@ import android.webkit.WebViewClient;
 
 public class MainActivity extends Activity {
     private WebView web;
+    private ValueCallback<Uri[]> mFileMsg = null;
+    private Uri mCaptureUri = null;
+    private static final int REQ_PICK = 9001;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +64,30 @@ public class MainActivity extends Activity {
                     .setOnCancelListener(d -> r.cancel())
                     .show();
                 return true;
+            }
+            @Override
+            public boolean onShowFileChooser(WebView wv, ValueCallback<Uri[]> filePathCallback, WebChromeClient.FileChooserParams params) {
+                if (mFileMsg != null) { mFileMsg.onReceiveValue(null); }
+                mFileMsg = filePathCallback;
+                try {
+                    if (params != null && params.isCaptureEnabled()) {
+                        File dir = new File(getCacheDir(), "capture");
+                        if (!dir.exists()) dir.mkdirs();
+                        File f = new File(dir, "cap_" + System.currentTimeMillis() + ".jpg");
+                        mCaptureUri = FileProvider.getUriForFile(MainActivity.this, "com.kaoyandaka.app.fileprovider", f);
+                        Intent cam = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                        cam.putExtra(MediaStore.EXTRA_OUTPUT, mCaptureUri);
+                        cam.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                        startActivityForResult(cam, REQ_PICK);
+                        return true;
+                    }
+                    Intent chooser = params.createIntent();
+                    startActivityForResult(chooser, REQ_PICK);
+                    return true;
+                } catch (Exception e) {
+                    if (mFileMsg != null) { mFileMsg.onReceiveValue(null); mFileMsg = null; }
+                    return false;
+                }
             }
         });
         web.setDownloadListener(new DownloadListener() {
@@ -101,6 +133,22 @@ public class MainActivity extends Activity {
         public void apply(final String mode) {
             runOnUiThread(() -> setStatusIcons(!"dark".equals(mode)));
         }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQ_PICK && mFileMsg != null) {
+            Uri result = null;
+            if (resultCode == RESULT_OK) {
+                if (mCaptureUri != null && new File(mCaptureUri.getPath()).exists()) { result = mCaptureUri; }
+                else if (data != null && data.getData() != null) { result = data.getData(); }
+            }
+            mFileMsg.onReceiveValue(result != null ? new Uri[]{result} : null);
+            mFileMsg = null;
+            mCaptureUri = null;
+            return;
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     @Override

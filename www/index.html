@@ -626,6 +626,60 @@ html[data-theme=light] .btab.active,
 </style><style id="v34">
 .wrap{position:relative;z-index:2}
 .view:not(#v-home){position:relative;z-index:auto}
+</style><style id="v37">
+#v-home .glass,
+#v-home .card.glass,
+#v-home .hcard{background:rgba(16,22,38,.9)!important;border-color:rgba(255,255,255,.18)!important}
+.wrap > .view:not(#v-home) .card,
+.wrap > .view:not(#v-home) .mstat,
+.wrap > .view:not(#v-home) .mini-stat{background:rgba(var(--cr),var(--cg),var(--cb),.9)!important}
+</style><style id="v38">
+#v-home .glass,
+#v-home .card.glass,
+#v-home .hcard{background:rgba(16,22,38,.05)!important;border-color:rgba(255,255,255,.22)!important}
+.wrap > .view:not(#v-home) .card,
+.wrap > .view:not(#v-home) .mstat,
+.wrap > .view:not(#v-home) .mini-stat{
+  background:rgba(var(--cr),var(--cg),var(--cb),.05)!important;
+  -webkit-backdrop-filter:blur(18px) saturate(150%)!important;
+  backdrop-filter:blur(18px) saturate(150%)!important;
+  border-color:rgba(255,255,255,.16)!important;
+}
+</style><style id="v40">
+#v-home .glass,
+#v-home .card.glass,
+#v-home .hcard{background:transparent!important}
+.wrap > .view:not(#v-home) .card,
+.wrap > .view:not(#v-home) .mstat,
+.wrap > .view:not(#v-home) .mini-stat{background:transparent!important}
+</style><style id="v41">
+#v-home .glass,
+#v-home .card.glass,
+#v-home .hcard{-webkit-backdrop-filter:blur(10px) saturate(140%)!important;backdrop-filter:blur(10px) saturate(140%)!important}
+.wrap > .view:not(#v-home) .card,
+.wrap > .view:not(#v-home) .mstat,
+.wrap > .view:not(#v-home) .mini-stat{-webkit-backdrop-filter:blur(10px) saturate(140%)!important;backdrop-filter:blur(10px) saturate(140%)!important}
+</style><style id="v42">
+#v-home .glass,
+#v-home .card.glass,
+#v-home .hcard{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+.wrap > .view:not(#v-home) .card,
+.wrap > .view:not(#v-home) .mstat,
+.wrap > .view:not(#v-home) .mini-stat{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+</style><style id="v43">
+#v-home .glass,
+#v-home .card.glass,
+#v-home .hcard{background:rgba(16,22,38,.40)!important}
+.wrap > .view:not(#v-home) .card,
+.wrap > .view:not(#v-home) .mstat,
+.wrap > .view:not(#v-home) .mini-stat{background:rgba(var(--cr),var(--cg),var(--cb),.40)!important}
+</style><style id="v44">
+#v-home .glass,
+#v-home .card.glass,
+#v-home .hcard{-webkit-backdrop-filter:blur(2px) saturate(125%)!important;backdrop-filter:blur(5px) saturate(130%)!important}
+.wrap > .view:not(#v-home) .card,
+.wrap > .view:not(#v-home) .mstat,
+.wrap > .view:not(#v-home) .mini-stat{-webkit-backdrop-filter:blur(5px) saturate(130%)!important;backdrop-filter:blur(5px) saturate(130%)!important}
 </style></head>
 <body>
 <script>
@@ -881,9 +935,14 @@ var LAYOUT = `
       <div class="field"><label class="f">答案与解析 *</label><textarea class="in" id="m-a" rows="3" placeholder="正确答案、解题步骤、关键思路"></textarea></div>
       <div class="rowline">
         <div class="field" style="flex:2;min-width:200px"><label class="f">错因（可选）</label><input class="in" id="m-r" placeholder="如：公式记错 / 思路卡壳"></div>
-        <div class="field" style="flex:1;min-width:160px"><label class="f">题目照片（可选，自动压缩）</label><input class="in" id="m-img" type="file" accept="image/*" style="padding:6px"></div>
+        <div class="field" style="flex:1;min-width:160px"><label class="f">拍题（点击直接调用相机拍照；也可选相册）</label><input class="in" id="m-img" type="file" accept="image/*" capture="environment" style="padding:6px" title="点击直接调相机/相册"></div>
       </div>
       <div class="qa-img reveal-hide" id="m-img-prev"></div>
+      <div class="rowline reveal-hide" id="m-img-tools" style="gap:8px">
+        <button class="btn mini" type="button" data-act="imgproc" data-mode="enhance">✨ 去阴影/增强</button>
+        <button class="btn mini" type="button" data-act="imgproc" data-mode="bin">⬛ 黑白印刷版</button>
+        <button class="btn mini pri" type="button" data-act="imgproc" data-mode="ocr">📋 识别题干文字(OCR)</button>
+      </div>
       <div class="rowline mt10">
         <button class="btn pri" type="submit" id="m-save-btn">保存错题</button>
         <button class="btn ghost reveal-hide" type="button" id="m-cancel">取消编辑</button>
@@ -1534,8 +1593,67 @@ function openMistakeEditor(id){
   if(id){ window.scrollTo({top:0,behavior:'smooth'}); }
 }
 function clearMistakeForm(){ ui.mEditId=null; ui.mImgData=null; $('#m-form-title').textContent='➕ 录入错题'; $('#m-save-btn').textContent='保存错题'; $('#m-cancel').classList.add('reveal-hide'); $('#m-q').value='';$('#m-a').value='';$('#m-r').value='';$('#m-tag').value='';$('#m-img').value=''; showMistakeImg(); }
-function showMistakeImg(){ var box=$('#m-img-prev'); if(!ui.mImgData){ box.classList.add('reveal-hide'); box.innerHTML=''; return; } box.classList.remove('reveal-hide'); box.innerHTML='<div class="small muted">已添加图片（自动压缩）</div><img src="'+ui.mImgData+'"><button class="btn mini ghost" data-act="mimgclear">移除图片</button>'; }
+function showMistakeImg(){ var box=$('#m-img-prev'); var tools=$('#m-img-tools'); if(!ui.mImgData){ if(box){box.classList.add('reveal-hide'); box.innerHTML='';} if(tools)tools.classList.add('reveal-hide'); return; } if(box){ box.classList.remove('reveal-hide'); box.innerHTML='<div class="small muted">'+(ui.mImgProc||'已添加图片（自动压缩）')+'</div><img src="'+ui.mImgData+'"><button class="btn mini ghost" data-act="mimgclear">移除图片</button>'; } if(tools)tools.classList.remove('reveal-hide'); }
 function compressImageFile(file,cb){ var img=new Image(); var url=URL.createObjectURL(file); img.onload=function(){ URL.revokeObjectURL(url); try{ var MAX=1200; var w=img.naturalWidth||img.width,h=img.naturalHeight||img.height; var sc=Math.min(1,MAX/Math.max(w,h)); w=Math.max(1,Math.round(w*sc)); h=Math.max(1,Math.round(h*sc)); var c=document.createElement('canvas'); c.width=w;c.height=h; var ctx=c.getContext('2d'); ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,w,h); ctx.drawImage(img,0,0,w,h); cb(c.toDataURL('image/jpeg',0.7)); }catch(e){ toast('图片处理失败'); cb(null); } }; img.onerror=function(){ URL.revokeObjectURL(url); toast('无法读取图片'); cb(null); }; img.src=url; }
+function loadScriptOnce(src){ return new Promise(function(res,rej){ if(window.Tesseract){ res(); return; } var sc=document.createElement('script'); sc.src=src; sc.onload=res; sc.onerror=function(){ rej(new Error('load')); }; document.head.appendChild(sc); }); }
+function loadImgFromData(durl){ return new Promise(function(res,rej){ var im=new Image(); im.onload=function(){ res(im); }; im.onerror=rej; im.src=durl; }); }
+async function processMistakeImage(mode){
+  if(!ui.mImgData){ toast('请先添加图片'); return; }
+  toast('图片处理中…');
+  try{
+    var im=await loadImgFromData(ui.mImgData);
+    var W=im.naturalWidth||im.width, H=im.naturalHeight||im.height;
+    var out=document.createElement('canvas'); out.width=W; out.height=H;
+    var x=out.getContext('2d',{willReadFrequently:true});
+    x.fillStyle='#ffffff'; x.fillRect(0,0,W,H); x.drawImage(im,0,0);
+    var srcData=x.getImageData(0,0,W,H).data;
+    var gray=new Float32Array(W*H);
+    for(var i=0;i<W*H;i++){ var j=i*4; gray[i]=0.299*srcData[j]+0.587*srcData[j+1]+0.114*srcData[j+2]; }
+    // 估计背景（缩小再放大 = 近似模糊）用于去阴影
+    var sm=32;
+    var small=document.createElement('canvas'); small.width=sm; small.height=sm;
+    var sx2=small.getContext('2d');
+    var flat=document.createElement('canvas'); flat.width=W; flat.height=H;
+    var fx=flat.getContext('2d');
+    var sd=new Uint8ClampedArray(W*H*4);
+    for(var m=0;m<W*H;m++){ sd[m*4]=gray[m]; sd[m*4+1]=gray[m]; sd[m*4+2]=gray[m]; sd[m*4+3]=255; }
+    fx.putImageData(new ImageData(sd,W,H),0,0);
+    sx2.imageSmoothingEnabled=true; sx2.drawImage(flat,0,0,sm,sm);
+    var bg=document.createElement('canvas'); bg.width=W; bg.height=H;
+    var bx=bg.getContext('2d'); bx.imageSmoothingEnabled=true; bx.drawImage(small,0,0,W,H);
+    var bd=bx.getImageData(0,0,W,H).data;
+    var od=out.getContext('2d').createImageData(W,H); var p=od.data;
+    function cl(v){ return v<0?0:(v>255?255:v); }
+    for(var n=0;n<W*H;n++){
+      var bgv=bd[n*4]||255;
+      var v=bgv>1?((gray[n]/bgv)*230):gray[n];
+      v=cl(v);
+      if(mode==='bin'){ v=v>155?255:0; } else { v=cl((v-128)*1.45+128); }
+      p[n*4]=v; p[n*4+1]=v; p[n*4+2]=v; p[n*4+3]=255;
+    }
+    out.getContext('2d').putImageData(od,0,0);
+    ui.mImgData=out.toDataURL('image/jpeg',0.85);
+    ui.mImgProc=(mode==='bin')?'图片（黑白印刷增强）':'图片（去阴影/对比增强）';
+    showMistakeImg();
+    toast(mode==='bin'?'已生成黑白增强版，可继续OCR':'已去阴影并增强对比度');
+  }catch(e){ toast('图片处理失败'); }
+}
+async function runOcr(){
+  if(!ui.mImgData){ toast('请先添加图片再识别'); return; }
+  try{
+    if(!window.Tesseract){ toast('正在加载 OCR 引擎（首次较慢）…'); await loadScriptOnce('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js'); }
+    toast('正在下载中文识别模型（首次约 10MB），请稍候…');
+    var worker=await Tesseract.createWorker('chi_sim+eng',1,{ logger:function(){} });
+    var res=await worker.recognize(ui.mImgData);
+    try{ await worker.terminate(); }catch(e2){}
+    var txt=(res.data&&res.data.text||'').trim();
+    if(!txt){ toast('未识别到文字：可先“增强/黑白”再试，或手打题干'); return; }
+    var ta=$('#m-q'); var prev=ta.value.trim();
+    ta.value=prev? (prev+'\n'+txt) : txt;
+    toast('已把识别文字填入题干，请核对修正');
+  }catch(e){ toast('OCR 失败：需联网加载模型，或网络不可达'); }
+}
+
 function submitMistake(){
   var q=$('#m-q').value.trim(),a=$('#m-a').value.trim(); if(!q){ toast('请填写题干'); return; } if(!a){ toast('请填写答案与解析'); return; }
   var sid=$('#m-subject').value,tag=$('#m-tag').value.trim(),reason=$('#m-r').value.trim();
@@ -1738,7 +1856,8 @@ function handleAct(act,el){
     case 'mdel': { var m=mistakeFind(id); if(m&&confirm('删除这道错题？其复习记录也会一并删除。')){ data.mistakes=data.mistakes.filter(function(x){return x.id!==id;}); save(); renderMistakes(); } break; }
     case 'mopen': ui.mOpenId=(ui.mOpenId===id)?null:id; renderMistakeList(); break;
     case 'makepaper': makePaper(); break;
-    case 'mimgclear': ui.mImgData=null; $('#m-img').value=''; showMistakeImg(); break;
+    case 'mimgclear': ui.mImgData=null; ui.mImgProc=''; $('#m-img').value=''; showMistakeImg(); break;
+    case 'imgproc': { var md=el.getAttribute('data-mode'); if(md==='ocr'){ runOcr(); } else { processMistakeImage(md); } break; }
     case 'sdel': deleteSubject(parseInt(el.getAttribute('data-i'),10)); break;
     case 'idel': deleteInterval(parseInt(el.getAttribute('data-i'),10)); break;
     case 'addsubject': addSubject(); break;
