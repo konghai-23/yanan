@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>考研自习打卡</title>
 <style>
 *{box-sizing:border-box}
@@ -402,6 +402,56 @@ html[data-theme=dark] .tabbar{background:linear-gradient(180deg, rgba(38,50,78,.
 .stat-total-big{font-size:38px;font-weight:900;line-height:1.05;font-variant-numeric:tabular-nums}
 #v-stats .bar-row .val{width:auto}
 #v-stats .listrow .pbar>i{transition:width .4s}
+</style><style id="v7glass">
+/* 全局液态玻璃：多彩底 + 倒角玻璃卡片 */
+body{
+  background:
+    radial-gradient(120% 90% at 8% -8%, rgba(79,109,245,.16), transparent 58%),
+    radial-gradient(120% 90% at 96% -4%, rgba(14,165,160,.14), transparent 55%),
+    radial-gradient(100% 80% at 50% 112%, rgba(245,158,11,.10), transparent 60%),
+    var(--bg);
+  background-attachment:fixed;
+}
+html[data-theme=dark] body{
+  background:
+    radial-gradient(120% 90% at 8% -8%, rgba(79,109,245,.18), transparent 58%),
+    radial-gradient(120% 90% at 96% -4%, rgba(14,165,160,.12), transparent 55%),
+    radial-gradient(100% 80% at 50% 112%, rgba(245,158,11,.08), transparent 60%),
+    #0b101c;
+}
+/* 非首页的所有卡片统一液态玻璃 */
+.wrap > .view:not(#v-home) .card,
+.wrap > .view:not(#v-home) .mstat,
+.wrap > .view:not(#v-home) .mini-stat{
+  background:linear-gradient(180deg, rgba(255,255,255,.72), rgba(255,255,255,.38));
+  border:1px solid rgba(255,255,255,.6);
+  -webkit-backdrop-filter:blur(20px) saturate(170%);
+  backdrop-filter:blur(20px) saturate(170%);
+  border-radius:22px;
+  box-shadow:0 12px 30px -20px rgba(20,30,60,.45), inset 0 1px 0 rgba(255,255,255,.7);
+}
+html[data-theme=dark] .wrap > .view:not(#v-home) .card,
+html[data-theme=dark] .wrap > .view:not(#v-home) .mstat,
+html[data-theme=dark] .wrap > .view:not(#v-home) .mini-stat{
+  background:linear-gradient(180deg, rgba(42,54,84,.6), rgba(22,30,50,.42));
+  border-color:rgba(255,255,255,.15);
+  box-shadow:0 12px 30px -18px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.12);
+}
+/* 状态栏安全区（顶部不要灰边/内容贴边） */
+html,body{overscroll-behavior-y:none}
+.view:not(#v-home){padding-top:calc(16px + env(safe-area-inset-top, 22px))}
+.page-head{margin-top:2px}
+/* 首页锁定一屏、禁止下滑 */
+#v-home{height:100vh;height:100dvh;overflow:hidden;overscroll-behavior:none}
+#v-home .home-content{padding-top:calc(12px + env(safe-area-inset-top, 22px));padding-bottom:calc(18px + env(safe-area-inset-bottom, 12px))}
+/* 时长预设 */
+.pomo-presets{flex:0 0 100%;display:flex;gap:5px}
+.pomo-presets .pchip{flex:1;min-width:0;border:1px solid rgba(255,255,255,.34);background:rgba(255,255,255,.15);color:#fff;border-radius:10px;padding:5px 0;font-size:12px;font-weight:700;cursor:pointer;transition:.15s}
+.pomo-presets .pchip.on{background:var(--accent);border-color:transparent;box-shadow:0 2px 8px -2px var(--accent)}
+@media (min-height:860px){ #v-home .hero-count{font-size:72px} #v-home .ring{width:112px;height:112px} }
+</style><style id="v7fix">
+.wrap{padding-bottom:0}
+.view:not(#v-home){padding-bottom:112px}
 </style></head>
 <body>
 <script>
@@ -435,7 +485,7 @@ function defaultSubjects(){ return [
 ]; }
 function defaultSettings(){ return {subjects:defaultSubjects(),dailyGoalMin:480,pomodoro:{focus:25,short:5,long:15,longEvery:4},reviewIntervals:FALLBACK_INTERVALS.slice(),examDate:'',theme:'auto',useDailyBg:true}; }
 function defaultData(){ return {version:1,settings:defaultSettings(),days:{},mistakes:[]}; }
-function defaultTimer(){ return {phase:'idle',running:false,startTs:0,accMs:0,subjectId:'',tag:'',streak:0}; }
+function defaultTimer(){ return {phase:'idle',running:false,startTs:0,accMs:0,subjectId:'',tag:'',streak:0,dur:null}; }
 let data=defaultData();
 let timer=defaultTimer();
 let ui={tab:'home',viewDate:todayStr(),statsRange:7,mEditId:null,mOpenId:null,mFilter:{subject:'all',status:'all'},review:null,pendingBreak:null,pomoTick:null};
@@ -767,12 +817,12 @@ var LAYOUT = `
 function $(sel){ return document.querySelector(sel); }
 function toast(msg){ var w=document.getElementById('toastwrap'); if(!w){ w=document.createElement('div'); w.id='toastwrap'; document.body.appendChild(w); } var t=document.createElement('div'); t.className='toast'; t.textContent=msg; w.appendChild(t); setTimeout(function(){ t.style.transition='opacity .4s'; t.style.opacity='0'; setTimeout(function(){ t.remove(); },400); },2600); }
 function updateStoreMeter(){ if(typeof document==='undefined')return; var el=document.getElementById('store-meter'); if(!el)return; try{ var bytes=new TextEncoder().encode(JSON.stringify(data)).length; var mb=(bytes/1024/1024).toFixed(2); var pct=Math.min(100,bytes/MAX_BYTES*100); el.querySelector('i').style.width=pct+'%'; el.classList.toggle('warn',pct>60&&pct<=85); el.classList.toggle('full',pct>85); var n=document.getElementById('store-num'); if(n)n.textContent=mb+' MB'; }catch(e){} }
-function applyTheme(){ var mode=data.settings.theme; var dark=mode==='dark'||(mode==='auto'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches); document.documentElement.setAttribute('data-theme',dark?'dark':'light'); }
+function applyTheme(){ var mode=data.settings.theme; var dark=mode==='dark'||(mode==='auto'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches); document.documentElement.setAttribute('data-theme',dark?'dark':'light'); try{ if(window.AndroidTheme)window.AndroidTheme.apply(dark?'dark':'light'); }catch(e){} }
 function refreshTagDatalists(){ ['tag-suggest','tag-suggest2','tag-suggest3'].forEach(function(dlId){ var dl=document.getElementById(dlId); if(!dl)return; var sidEl=dlId==='tag-suggest'?$('#practice-subject'):dlId==='tag-suggest2'?$('#manual-subject'):$('#m-subject'); var sid=sidEl?sidEl.value:''; var tags={}; Object.keys(data.days).forEach(function(k){ (data.days[k].practice||[]).forEach(function(p){ if(p.subjectId===sid&&p.tag)tags[p.tag]=1; }); (data.days[k].sessions||[]).forEach(function(s){ if(s.subjectId===sid&&s.tag)tags[s.tag]=1; }); }); data.mistakes.forEach(function(m){ if(m.subjectId===sid&&m.tag)tags[m.tag]=1; }); var opts=Object.keys(tags).sort(); dl.innerHTML=opts.map(function(t){return '<option value="'+escDl(t)+'"></option>';}).join(''); }); }
 function fillSubjectOptions(){ document.querySelectorAll('.subj-sel').forEach(function(sel){ var cur=sel.value; subjectOptions(sel,data.settings.subjects.some(function(x){return x.id===cur;})?cur:''); }); refreshTagDatalists(); }
 
 /* ============ 番茄钟 ============ */
-function durMs(){ var p=timer.phase,pm=data.settings.pomodoro; var m=p==='focus'?pm.focus:(p==='short'?pm.short:(p==='long'?pm.long:pm.focus)); return m*60000; }
+function durMs(){ var p=timer.phase,pm=data.settings.pomodoro; var m=p==='focus'?(timer.dur||pm.focus):(p==='short'?pm.short:(p==='long'?pm.long:pm.focus)); return m*60000; }
 function elapsedMs(){ return timer.accMs+(timer.running?Date.now()-timer.startTs:0); }
 function remainingMs(){ return Math.max(0,durMs()-elapsedMs()); }
 function fmtClock(ms){ var s=Math.ceil(ms/1000); var mm=Math.floor(s/60),ss=s%60; return String(mm).padStart(2,'0')+':'+String(ss).padStart(2,'0'); }
@@ -783,25 +833,35 @@ function timerDurationLabel(){ var pm=data.settings.pomodoro; return '专注 '+p
 
 function renderPomo(){
   var body=$('#pomo-body'); if(!body)return; var hint=$('#pomo-hint');
-  if(hint)hint.textContent=timerDurationLabel();
-  var pm=data.settings.pomodoro; var running=timer.running; var phase=timer.phase;
+  var pm=data.settings.pomodoro; var focusMin=timer.dur||pm.focus;
+  if(hint)hint.textContent='本次专注时长可快速选择 · 计入所选科目';
+  var running=timer.running; var phase=timer.phase;
   var restPhase=(phase==='short'||phase==='long');
   var chipTxt=phase==='focus'?'专注中':restPhase?(phase==='short'?'短休中':'长休中'):'准备开始';
   var pct=0; if(phase!=='idle'){ var dur=durMs(); pct=dur?Math.min(100,elapsedMs()/dur*100):0; }
-  var showTime = phase!=='idle'?fmtClock(remainingMs()):fmtClock(pm.focus*60000);
+  var showTime = phase!=='idle'?fmtClock(remainingMs()):fmtClock(focusMin*60000);
   var html='<div class="pomo-main">';
   html+='<div class="ring pomo-ring" id="t-ring" style="background:conic-gradient(var(--accent) 0deg '+(pct*3.6).toFixed(1)+'deg, rgba(255,255,255,.16) 0deg)"><div class="ringtxt"><b id="t-time">'+showTime+'</b><span id="t-phase">'+chipTxt+'</span></div></div>';
-  html+='<div class="pomo-side"><div class="pomo-fields"><select class="in subj-sel pomo-subject" id="pomo-subject" title="科目"></select><input class="in pomo-tag" id="pomo-tag" placeholder="内容(可选)" value="'+escDl(timer.tag||'')+'"></div>';
+  html+='<div class="pomo-side"><div class="pomo-fields"><select class="in subj-sel pomo-subject" id="pomo-subject" title="选择科目"></select><input class="in pomo-tag" id="pomo-tag" placeholder="内容(可选)" value="'+escDl(timer.tag||'')+'"></div>';
   html+='<div class="pomo-btns" id="t-ctls"></div><div class="pomo-hint" id="t-hint"></div></div></div>';
   body.innerHTML=html;
   subjectOptions($('#pomo-subject'),timer.subjectId||'');
   $('#pomo-subject').addEventListener('change',function(){ timer.subjectId=this.value; saveTimer(); });
   $('#pomo-tag').addEventListener('input',function(){ timer.tag=this.value; });
   var ctl=$('#t-ctls'), ht=$('#t-hint'), hintTxt='';
-  if(phase==='idle'&&!ui.pendingBreak){ ctl.innerHTML='<button class="btn ok" data-act="pstart">▶ 开始专注</button>'; hintTxt='时长可在「设置」调整 · 到点自动结算并提醒'; }
-  else if(phase==='focus'){ ctl.innerHTML=(running?'<button class="btn" data-act="ppause">⏸ 暂停</button>':'<button class="btn pri" data-act="presume">▶ 继续</button>')+'<button class="btn" data-act="psave">结算</button><button class="btn ghost" data-act="pdrop">放弃</button>'; hintTxt=running?'计时中，切换科目会记录到新科目':'已暂停，可继续或结算'; }
-  else if(restPhase){ ctl.innerHTML='<button class="btn pri" data-act="pskip">⏭ 跳过休息</button>'; hintTxt='休息中，不计入学习时长'; }
-  else if(ui.pendingBreak){ var l=ui.pendingBreak.long; hintTxt='🍅 完成！休息一下或直接再来'; ctl.innerHTML='<button class="btn'+(l?'':' pri')+'" data-act="pbreak" data-long="0">短休 '+pm.short+'′</button>'+(l?'<button class="btn pri" data-act="pbreak" data-long="1">长休 '+pm.long+'′</button>':'')+'<button class="btn ok" data-act="pnext">再专注</button><button class="btn ghost" data-act="pend">结束</button>'; }
+  if(phase==='idle'&&!ui.pendingBreak){
+    ctl.innerHTML='<div class="pomo-presets">'+[25,30,45,60].map(function(x){ return '<button class="pchip'+(focusMin===x?' on':'')+'" data-act="pset" data-min="'+x+'">'+x+'′</button>'; }).join('')+'</div><button class="btn ok" data-act="pstart" style="flex:1.6">▶ 开始专注</button>';
+    hintTxt='选好时长与科目开始 · 完成自动计入该科目累计';
+  } else if(phase==='focus'){
+    ctl.innerHTML=(running?'<button class="btn" data-act="ppause">⏸ 暂停</button>':'<button class="btn pri" data-act="presume">▶ 继续</button>')+'<button class="btn" data-act="psave">结算</button><button class="btn ghost" data-act="pdrop">放弃</button>';
+    hintTxt=(running?'计时中 · 完成计入「'+subj(timer.subjectId).name+'」':'已暂停 · 可继续或结算')+'（本次 '+focusMin+' 分钟）';
+  } else if(restPhase){
+    ctl.innerHTML='<button class="btn pri" data-act="pskip">⏭ 跳过休息</button>';
+    hintTxt='休息中，不计入学习时长';
+  } else if(ui.pendingBreak){
+    var l=ui.pendingBreak.long; hintTxt='🍅 完成！已计入「'+subj(timer.subjectId).name+'」累计';
+    ctl.innerHTML='<button class="btn'+(l?'':' pri')+'" data-act="pbreak" data-long="0">短休 '+pm.short+'′</button>'+(l?'<button class="btn pri" data-act="pbreak" data-long="1">长休 '+pm.long+'′</button>':'')+'<button class="btn ok" data-act="pnext">再专注</button><button class="btn ghost" data-act="pend">结束</button>';
+  }
   if(ht)ht.textContent=hintTxt;
 }
 function tickPomo(){
@@ -823,7 +883,7 @@ function finalizeFocus(saveAnyway){
   var minutes=Math.round(elapsedMs()/60000);
   var date=todayStr();
   if(minutes>=1){ dayRec(date).sessions.push({id:uid(),subjectId:timer.subjectId||'',tag:timer.tag||'',minutes:minutes,ts:Date.now(),source:'pomodoro'}); save(); }
-  timer.phase='idle'; timer.running=false; timer.accMs=0; timer.startTs=0; saveTimer();
+  timer.phase='idle'; timer.running=false; timer.accMs=0; timer.startTs=0; timer.dur=null; saveTimer();
   if(saveAnyway&&minutes<1)toast('本次不足 1 分钟，未记录');
   return minutes;
 }
@@ -843,11 +903,11 @@ function actionPomo(act){
   else if(act==='ppause'){ if(timer.running){ timer.accMs+=Date.now()-timer.startTs; timer.running=false; saveTimer(); renderPomo(); } }
   else if(act==='presume'){ timer.startTs=Date.now(); timer.running=true; saveTimer(); renderPomo(); }
   else if(act==='psave'){ var min=Math.round(elapsedMs()/60000); if(min<1){ timer.phase='idle'; timer.running=false; timer.accMs=0; saveTimer(); renderPomo(); toast('不足 1 分钟，未记录'); return; } if(confirm('已专注约 '+min+' 分钟，保存并结束？')){ finalizeFocus(true); toast('已记录 '+min+' 分钟'); renderActive(); } }
-  else if(act==='pdrop'){ if(confirm('确定放弃本次专注？将不记录时长')){ timer.phase='idle'; timer.running=false; timer.accMs=0; timer.startTs=0; saveTimer(); renderPomo(); } }
+  else if(act==='pdrop'){ if(confirm('确定放弃本次专注？将不记录时长')){ timer.phase='idle'; timer.running=false; timer.accMs=0; timer.startTs=0; timer.dur=null; saveTimer(); renderPomo(); } }
   else if(act==='pskip'){ timer.phase='idle'; timer.running=false; timer.accMs=0; timer.startTs=0; saveTimer(); renderPomo(); }
   else if(act==='pbreak'){ var l=event&&event.currentTarget&&event.currentTarget.getAttribute('data-long')==='1'; var pm=data.settings.pomodoro; timer.phase=l?'long':'short'; timer.running=true; timer.startTs=Date.now(); timer.accMs=0; ui.pendingBreak=null; saveTimer(); renderPomo(); }
   else if(act==='pnext'){ ui.pendingBreak=null; timer.phase='idle'; timer.running=false; timer.accMs=0; saveTimer(); renderPomo(); }
-  else if(act==='pend'){ ui.pendingBreak=null; timer.phase='idle'; timer.running=false; timer.accMs=0; timer.streak=0; saveTimer(); renderPomo(); }
+  else if(act==='pend'){ ui.pendingBreak=null; timer.phase='idle'; timer.running=false; timer.accMs=0; timer.streak=0; timer.dur=null; saveTimer(); renderPomo(); }
 }/* ============ 今日页渲染 ============ */
 function renderRecord(){
   var date=ui.viewDate,today=todayStr(),isToday=date===today;
@@ -1124,14 +1184,11 @@ function renderStats(){
   var tel=$('#stat-total'); if(tel)tel.innerHTML='<div class="stat-total-big">'+fmtDur(totalMin)+'</div><div class="small muted">累计专注 · 记录 '+Object.keys(data.days).length+' 天</div>';
   var map={};
   Object.keys(data.days).forEach(function(k){ (data.days[k].sessions||[]).forEach(function(s2){ var sid=s2.subjectId||''; map[sid]=(map[sid]||0)+(s2.minutes||0); }); });
-  var rows=data.settings.subjects.map(function(su){ return {name:su.name,color:su.color,min:map[su.id]||0}; }).sort(function(a,b){return b.min-a.min;});
+  var rows=data.settings.subjects.map(function(su){ return {name:su.name,color:su.color,min:map[su.id]||0}; });
   var max=Math.max.apply(null,rows.map(function(r){return r.min;}))||1;
   var se=$('#stat-subject');
   if(se){
-    if(!totalMin){ se.innerHTML=emptyNote('还没有专注记录，去首页开一个番茄钟吧'); }
-    else {
-      se.innerHTML='<div class="list">'+rows.map(function(r){ var w=r.min?Math.max(3,Math.round(r.min/max*100)):0; return '<div class="listrow"><div class="t-main" style="flex:1"><div class="rowline"><span class="chip" style="background:'+r.color+'22;color:'+r.color+'"><span class="dot"></span>'+esc(r.name)+'</span></div><div class="pbar" style="margin-top:6px"><i style="width:'+w+'%;background:'+r.color+'"></i></div></div><span class="val muted" style="font-variant-numeric:tabular-nums">'+fmtDur(r.min)+'</span></div>'; }).join('')+'</div>';
-    }
+    se.innerHTML='<div class="list">'+rows.map(function(r){ var w=r.min?Math.max(3,Math.round(r.min/max*100)):0; return '<div class="listrow"><div class="t-main" style="flex:1"><div class="rowline"><span class="chip" style="background:'+r.color+'22;color:'+r.color+'"><span class="dot"></span>'+esc(r.name)+'</span></div><div class="pbar" style="margin-top:6px"><i style="width:'+w+'%;background:'+r.color+'"></i></div></div><span class="val muted" style="font-variant-numeric:tabular-nums">'+fmtDur(r.min)+'</span></div>'; }).join('')+'</div>';
   }
   var due=dueMistakes().length, active=activeMistakes().length, mastered=data.mistakes.length-active, rvs=reviewStats();
   var mc=$('#m-stats-cards'); if(mc)mc.innerHTML=miniStat('今日待复习',due,'到期队列')
@@ -1242,6 +1299,8 @@ function switchTab(name){
   var tb=document.querySelector('.tabbar'); if(tb)tb.style.display=(name==='record')?'none':'';
   ['home','record','mistake','stats','settings'].forEach(function(v){ var el=$('#v-'+v); if(el)el.classList.toggle('active',v===name); });
   window.scrollTo(0,0);
+  var docRoot=document.documentElement; if(docRoot)docRoot.style.overflow=(name==='home')?'hidden':'';
+  if(document.body)document.body.style.overflow=(name==='home')?'hidden':'';
   if(name==='home'){ renderHome(); }
   else if(name==='record'){ if(!ui.viewDate)ui.viewDate=todayStr(); renderRecord(); }
   else if(name==='mistake'){ fillSubjectOptions(); if(!ui.review)renderMistakes(); }
@@ -1255,6 +1314,7 @@ function handleAct(act,el){
     case 'prevday': ui.viewDate=addDays(ui.viewDate,-1); renderActive(); break;
     case 'nextday': { var nx=addDays(ui.viewDate,1); if(nx>todayStr()){ toast('不能查看未来的日期'); break; } ui.viewDate=nx; renderActive(); break; }
     case 'todayday': ui.viewDate=todayStr(); renderActive(); break;
+    case 'pset': { var mn=parseInt(el.getAttribute('data-min'),10); if(mn>0){ timer.dur=mn; saveTimer(); renderPomo(); } break; }
     case 'pstart': case 'ppause': case 'presume': case 'psave': case 'pdrop': case 'pskip': case 'pbreak': case 'pnext': case 'pend': actionPomo(act,el); break;
     case 'tasktoggle': { var t=dayRec(ui.viewDate).tasks.find(function(x){return x.id===id;}); if(t){ t.status=t.status==='done'?'todo':'done'; save(); renderTasks(); renderTodaySummary(); } break; }
     case 'taskab': { var t2=dayRec(ui.viewDate).tasks.find(function(x){return x.id===id;}); if(t2){ t2.status=t2.status==='abandoned'?'todo':'abandoned'; save(); renderTasks(); renderTodaySummary(); } break; }
