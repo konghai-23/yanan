@@ -947,7 +947,7 @@ var LAYOUT = `
   </div>
 </section>
 <section class="view" id="v-mistake">
-  <div class="page-head"><h2>📕 录入错题</h2><span class="ph-sub">已录错题请在首页「待复习」中查看与复习</span></div>
+  <div class="page-head"><h2>📕 录入错题</h2><span class="ph-sub">从相册选题/答案照 · 在首页「待复习」复习</span></div>
   <div class="card">
     <div class="card-h" id="m-form-title">➕ 录入错题</div>
     <form id="m-form" autocomplete="off">
@@ -958,14 +958,14 @@ var LAYOUT = `
       </div>
       <div class="m-shot-grid">
         <div class="card m-shot">
-          <button type="button" class="m-shot-btn" data-act="openshot" data-slot="q">📷 拍题目</button>
-          <div class="small muted">点击直接调用原相机</div>
-          <input class="in reveal-hide" id="m-qimg" type="file" accept="image/*" capture="environment">
+          <button type="button" class="m-shot-btn" data-act="openshot" data-slot="q">🖼 从相册选题目</button>
+          <div class="small muted">点击从相册选择</div>
+          <input class="in reveal-hide" id="m-qimg" type="file" accept="image/*" >
           <div class="shot-media" id="m-qmedia"><span class="small muted">尚未拍摄</span></div>
         </div>
         <div class="card m-shot">
-          <button type="button" class="m-shot-btn" data-act="openshot" data-slot="a">📷 拍答案解析</button>
-          <div class="small muted">可选 · 与题目归为一道</div>
+          <button type="button" class="m-shot-btn" data-act="openshot" data-slot="a">🖼 从相册选答案</button>
+          <div class="small muted">可选 · 与题目归为一道（相册）</div>
           <input class="in reveal-hide" id="m-aimg" type="file" accept="image/*" capture="environment">
           <div class="shot-media" id="m-amedia"><span class="small muted">尚未拍摄</span></div>
         </div>

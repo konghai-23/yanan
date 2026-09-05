@@ -40,6 +40,7 @@ public class MainActivity extends Activity {
     private static final int REQ_PICK = 9001;
     private static final int REQ_PERM = 9002;
     private boolean mCameraPending = false;
+    private WebChromeClient.FileChooserParams mPendingGallery = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,9 +91,13 @@ public class MainActivity extends Activity {
                         }
                         return startCameraCapture();
                     }
-                    Intent chooser = params.createIntent();
-                    startActivityForResult(chooser, REQ_PICK);
-                    return true;
+                    if (Build.VERSION.SDK_INT >= 23) {
+                        List<String> need = new ArrayList<>();
+                        String readPerm = (Build.VERSION.SDK_INT >= 33) ? Manifest.permission.READ_MEDIA_IMAGES : Manifest.permission.READ_EXTERNAL_STORAGE;
+                        if (checkSelfPermission(readPerm) != PackageManager.PERMISSION_GRANTED) need.add(readPerm);
+                        if (!need.isEmpty()) { mPendingGallery = params; requestPermissions(need.toArray(new String[0]), REQ_PERM); return true; }
+                    }
+                    return startGalleryChooser(params);
                 } catch (Exception e) {
                     if (mFileMsg != null) { mFileMsg.onReceiveValue(null); mFileMsg = null; }
                     return false;
@@ -161,6 +166,14 @@ public class MainActivity extends Activity {
         super.onActivityResult(requestCode, resultCode, data);
     }
 
+    private boolean startGalleryChooser(WebChromeClient.FileChooserParams params) {
+        try {
+            Intent chooser = params.createIntent();
+            startActivityForResult(chooser, REQ_PICK);
+            return true;
+        } catch (Exception e) { return false; }
+    }
+
     private boolean startCameraCapture() {
         try {
             File dir = new File(getCacheDir(), "capture");
@@ -181,8 +194,15 @@ public class MainActivity extends Activity {
             mCameraPending = false;
             boolean ok = true;
             for (int g : grantResults) { if (g != PackageManager.PERMISSION_GRANTED) ok = false; }
-            if (ok) { startCameraCapture(); }
-            else if (mFileMsg != null) { mFileMsg.onReceiveValue(null); mFileMsg = null; }
+            if (ok) {
+                if (mPendingGallery != null) { WebChromeClient.FileChooserParams gp = mPendingGallery; mPendingGallery = null; startGalleryChooser(gp); }
+                else { startCameraCapture(); }
+            } else if (mFileMsg != null) { mFileMsg.onReceiveValue(null); mFileMsg = null; }
+            return;
+        }
+        if (requestCode == REQ_PERM && mPendingGallery != null) {
+            mPendingGallery = null;
+            if (mFileMsg != null) { mFileMsg.onReceiveValue(null); mFileMsg = null; }
             return;
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);

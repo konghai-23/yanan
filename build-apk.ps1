@@ -8,7 +8,7 @@ param(
   [string]$SdkDir  = 'C:\Users\34497\android-tools\sdk',
   [string]$JdkHome = 'C:\Users\34497\android-tools\jdk-17.0.20.1+1',
   [string]$WorkDir = 'C:\Users\34497\android-tools\kaoyan-app2',
-  [string]$OutName = '研岸-v3.7.apk'
+  [string]$OutName = '研岸-v3.8.apk'
 )
 $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
