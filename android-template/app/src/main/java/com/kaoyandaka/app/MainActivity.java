@@ -144,6 +144,36 @@ public class MainActivity extends Activity {
         getWindow().getDecorView().setSystemUiVisibility(vis);
     }
 
+    private void savePdfToDownloads(File f) {
+        try {
+            if (Build.VERSION.SDK_INT >= 29) {
+                android.content.ContentValues cv = new android.content.ContentValues();
+                cv.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, "paper_" + System.currentTimeMillis() + ".pdf");
+                cv.put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "application/pdf");
+                cv.put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_DOWNLOADS);
+                android.net.Uri outUri = getContentResolver().insert(android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI, cv);
+                if (outUri != null) {
+                    java.io.OutputStream os = getContentResolver().openOutputStream(outUri);
+                    java.io.FileInputStream fis = new java.io.FileInputStream(f);
+                    byte[] all = new byte[(int) f.length()];
+                    fis.read(all); fis.close();
+                    os.write(all); os.flush(); os.close();
+                    Toast.makeText(MainActivity.this, "未找到PDF阅读器，已保存到下载文件夹", Toast.LENGTH_LONG).show();
+                    return;
+                }
+            }
+            File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "paper_" + System.currentTimeMillis() + ".pdf");
+            java.io.FileOutputStream out = new java.io.FileOutputStream(dir);
+            java.io.FileInputStream fis2 = new java.io.FileInputStream(f);
+            byte[] all2 = new byte[(int) f.length()];
+            fis2.read(all2); fis2.close();
+            out.write(all2); out.flush(); out.close();
+            Toast.makeText(MainActivity.this, "未找到PDF阅读器，已保存到下载：" + dir.getAbsolutePath(), Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            Toast.makeText(MainActivity.this, "PDF 保存失败，请稍后重试", Toast.LENGTH_LONG).show();
+        }
+    }
+
     private class PdfBridge {
         @JavascriptInterface
         public void open(final String b64, final String name) {
@@ -158,18 +188,24 @@ public class MainActivity extends Activity {
                 out.flush();
                 out.close();
                 Uri uri = FileProvider.getUriForFile(MainActivity.this, "com.kaoyandaka.app.fileprovider", f);
+                boolean opened = false;
                 try {
                     Intent view = new Intent(Intent.ACTION_VIEW);
                     view.setDataAndType(uri, "application/pdf");
                     view.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    startActivity(view);
-                } catch (Exception e) {
-                    Intent share = new Intent(Intent.ACTION_SEND);
-                    share.setType("application/pdf");
-                    share.putExtra(Intent.EXTRA_STREAM, uri);
-                    share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    startActivity(Intent.createChooser(share, "打开/分享试卷 PDF"));
+                    startActivity(Intent.createChooser(view, "用…打开试卷 PDF"));
+                    opened = true;
+                } catch (Exception e1) {
+                    try {
+                        Intent share = new Intent(Intent.ACTION_SEND);
+                        share.setType("application/pdf");
+                        share.putExtra(Intent.EXTRA_STREAM, uri);
+                        share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        startActivity(Intent.createChooser(share, "打开/分享试卷 PDF"));
+                        opened = true;
+                    } catch (Exception e2) { opened = false; }
                 }
+                if (!opened) { savePdfToDownloads(f); }
             } catch (Exception ignored) { try { Toast.makeText(MainActivity.this, "PDF 打开失败", Toast.LENGTH_SHORT).show(); } catch (Exception t) {} } } });
         }
     }
