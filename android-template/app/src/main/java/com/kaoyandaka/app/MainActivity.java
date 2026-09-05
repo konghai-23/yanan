@@ -3,9 +3,11 @@ package com.kaoyandaka.app;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ActivityManager;
 import android.app.DownloadManager;
 import android.content.Intent;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.util.Base64;
 import android.widget.Toast;
 import android.webkit.ValueCallback;
@@ -121,6 +123,7 @@ public class MainActivity extends Activity {
         });
         web.addJavascriptInterface(new ThemeBridge(), "AndroidTheme");
         web.addJavascriptInterface(new PdfBridge(), "AndroidPdf");
+        web.addJavascriptInterface(new LockBridge(), "AndroidLock");
         setContentView(web);
         web.loadUrl("file:///android_asset/public/index.html");
     }
@@ -207,6 +210,34 @@ public class MainActivity extends Activity {
                 }
                 if (!opened) { savePdfToDownloads(f); }
             } catch (Exception ignored) { try { Toast.makeText(MainActivity.this, "PDF 打开失败", Toast.LENGTH_SHORT).show(); } catch (Exception t) {} } } });
+        }
+    }
+
+    private class LockBridge {
+        @JavascriptInterface
+        public void start() {
+            runOnUiThread(() -> {
+                try { startLockTask(); }
+                catch (Throwable t) { Toast.makeText(MainActivity.this, "无法锁屏：请先在系统设置开启「屏幕固定」", Toast.LENGTH_LONG).show(); }
+            });
+        }
+        @JavascriptInterface
+        public void stop() {
+            runOnUiThread(() -> { try { stopLockTask(); } catch (Throwable ignored) {} });
+        }
+        @JavascriptInterface
+        public boolean active() {
+            try {
+                if (Build.VERSION.SDK_INT >= 23) {
+                    ActivityManager am = (ActivityManager) MainActivity.this.getSystemService(ACTIVITY_SERVICE);
+                    return am != null && am.getLockTaskModeState() != ActivityManager.LOCK_TASK_MODE_NONE;
+                }
+            } catch (Throwable t) {}
+            return false;
+        }
+        @JavascriptInterface
+        public void openSettings() {
+            runOnUiThread(() -> { try { startActivity(new Intent(Settings.ACTION_SECURITY_SETTINGS)); } catch (Throwable ignored) {} });
         }
     }
 

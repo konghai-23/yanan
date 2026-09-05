@@ -741,6 +741,7 @@ function defaultData(){ return {version:1,settings:defaultSettings(),days:{},mis
 function defaultTimer(){ return {phase:'idle',running:false,startTs:0,accMs:0,subjectId:'',tag:'',streak:0,dur:null}; }
 let data=defaultData();
 let timer=defaultTimer();
+let pomoLock=false;
 let ui={tab:'home',viewDate:todayStr(),statsRange:7,mEditId:null,mOpenId:null,mFilter:{subject:'all',status:'all'},review:null,pendingBreak:null,pomoTick:null};
 
 /* ============ 规范化 ============ */
@@ -1075,7 +1076,7 @@ var LAYOUT = `
   </div>
   <div class="card mt16">
     <div class="card-h">ℹ️ 关于</div>
-    <div class="small muted">研岸 · 考研自习打卡　v3.1<br>· “研岸”愿你顺利上岸；<br>· 每次进入 App 自动更换治愈系背景（全页跟随），每次返回首页更换每日英文一句；<br>· 全站卡片颜色会跟随首页背景动态取色；<br>· 支持错题录入/多轮复习/随机组卷 PDF；<br>· 数据仅保存在本机，请定期在「数据备份」导出。</div>
+    <div class="small muted">研岸 · 考研自习打卡　v4.2<br>· “研岸”愿你顺利上岸；<br>· 每次进入 App 自动更换治愈系背景（全页跟随），每次返回首页更换每日英文一句；<br>· 全站卡片颜色会跟随首页背景动态取色；<br>· 支持错题录入/多轮复习/随机组卷 PDF；<br>· 支持错题复习/随机组卷 PDF；<br>· 安卓版支持「锁屏专注」：开始专注时可选择屏幕固定，期间无法回到桌面；<br>· 数据仅保存在本机，请定期在「数据备份」导出。</div>
   </div>
 </section>
 </div>
@@ -1103,6 +1104,72 @@ function requestNotify(){ try{ if('Notification' in window&&Notification.permiss
 function notify(title,body){ try{ if('Notification' in window&&Notification.permission==='granted')new Notification(title,{body:body}); }catch(e){} }
 function timerDurationLabel(){ var pm=data.settings.pomodoro; return '专注 '+pm.focus+' / 短休 '+pm.short+' / 长休 '+pm.long+' 分钟'; }
 
+
+/* ===== 安卓锁屏专注（利用系统“屏幕固定” Lock Task）===== */
+function nativeLock(){ return !!(window.AndroidLock&&window.AndroidLock.start); }
+function lockStart(){ try{ if(nativeLock())window.AndroidLock.start(); }catch(e){} }
+function lockStop(){ try{ if(nativeLock())window.AndroidLock.stop(); }catch(e){} }
+function lockActive(){ try{ return nativeLock()&&!!window.AndroidLock.active(); }catch(e){ return false; } }
+function lockOpenSettings(){ try{ if(nativeLock())window.AndroidLock.openSettings(); }catch(e){} }
+function lockModalBase(){ var ov=document.createElement('div'); ov.style.cssText="position:fixed;left:0;top:0;right:0;bottom:0;z-index:300;background:rgba(5,9,18,.55);display:flex;align-items:center;justify-content:center;padding:22px;"; return ov; }
+function closeOverlay(ov){ if(ov&&ov.parentNode){ if(ov.id==='lk-guide'&&document.getElementById('lk-guide')===ov)ov.id=''; ov.parentNode.removeChild(ov); } }
+function askLockModal(cb){
+  var ov=lockModalBase();
+  ov.innerHTML="<div style='width:100%;max-width:330px;background:rgba(20,28,46,.94);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border:1px solid rgba(255,255,255,.18);border-radius:24px;padding:20px;color:#eef2fb;box-shadow:0 26px 70px -20px rgba(0,0,0,.7)'>"
+   +"<div style='font-size:17px;font-weight:800;margin-bottom:4px'>🍅 开始专注</div>"
+   +"<div style='font-size:12.5px;color:rgba(238,242,251,.72);margin-bottom:14px;line-height:1.6'>是否开启<b style='color:#fff'>锁屏专注</b>？开启后无法回到桌面或打开其它应用，来电仍可接听；专注结束或放弃会自动解锁。</div>"
+   +"<button id='lk-on' style='display:flex;width:100%;align-items:center;justify-content:center;gap:8px;border:0;border-radius:14px;padding:12px 0;font-weight:800;font-size:15px;background:linear-gradient(135deg,#4f6df5,#0ea5a0);color:#fff;margin-bottom:10px'>🔒 锁屏专注</button>"
+   +"<button id='lk-off' style='display:flex;width:100%;align-items:center;justify-content:center;gap:8px;border:1px solid rgba(255,255,255,.22);border-radius:14px;padding:11px 0;font-weight:700;font-size:14.5px;background:rgba(255,255,255,.08);color:#eef2fb;margin-bottom:10px'>⏰ 普通专注（不锁屏）</button>"
+   +"<button id='lk-cancel' style='display:block;width:100%;border:0;background:transparent;color:rgba(238,242,251,.55);font-size:13px;padding:6px 0'>取消</button>"
+   +"<div style='font-size:11px;color:rgba(238,242,251,.5);margin-top:8px;line-height:1.5'>💡 首次使用需到 系统设置→安全 开启「屏幕固定」，并建议开启「取消固定前要求输入锁屏密码」。<br>🔒 仅安卓安装版支持，iPad/网页打开时自动普通专注。</div>"
+   +"</div>";
+  document.body.appendChild(ov);
+  var done=function(v){ closeOverlay(ov); cb(v); };
+  ov.querySelector('#lk-on').addEventListener('click',function(){ done(true); });
+  ov.querySelector('#lk-off').addEventListener('click',function(){ done(false); });
+  ov.querySelector('#lk-cancel').addEventListener('click',function(){ done(null); });
+}
+function showLockGuide(){
+  if(document.getElementById('lk-guide'))return;
+  var ov=lockModalBase(); ov.id='lk-guide';
+  ov.innerHTML="<div style='width:100%;max-width:330px;background:rgba(20,28,46,.94);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border:1px solid rgba(255,255,255,.18);border-radius:24px;padding:20px;color:#eef2fb;box-shadow:0 26px 70px -20px rgba(0,0,0,.7)'>"
+   +"<div style='font-size:16px;font-weight:800;margin-bottom:8px'>🔒 锁屏专注未生效</div>"
+   +"<div style='font-size:13px;color:rgba(238,242,251,.78);line-height:1.7;margin-bottom:14px'>手机没有进入“屏幕固定”。请到系统 <b style='color:#fff'>设置 → 安全</b> 开启「<b style='color:#fff'>屏幕固定</b>」（部分系统叫“固定屏幕”），并建议开启「取消固定前要求输入锁屏密码」。回到本页后，专注中按 🔒 锁屏 即可重新尝试。</div>"
+   +"<button id='lk-set' style='display:block;width:100%;border:0;border-radius:14px;padding:12px 0;font-weight:800;font-size:15px;background:linear-gradient(135deg,#4f6df5,#0ea5a0);color:#fff;margin-bottom:8px'>去系统设置</button>"
+   +"<button id='lk-ok' style='display:block;width:100%;border:1px solid rgba(255,255,255,.2);border-radius:14px;padding:10px 0;font-weight:700;font-size:14px;background:rgba(255,255,255,.06);color:#eef2fb'>知道了，先普通专注</button>"
+   +"</div>";
+  document.body.appendChild(ov);
+  ov.querySelector('#lk-set').addEventListener('click',function(){ closeOverlay(ov); lockOpenSettings(); });
+  ov.querySelector('#lk-ok').addEventListener('click',function(){ closeOverlay(ov); });
+  return ov;
+}
+function scheduleLockCheck(){
+  setTimeout(function(){
+    if(!pomoLock||lockActive())return;
+    var ov=showLockGuide();
+    var tries=0;
+    var iv=setInterval(function(){
+      tries++;
+      if(lockActive()){ clearInterval(iv); closeOverlay(ov); toast('🔒 已进入锁屏专注'); }
+      else if(tries>18){ clearInterval(iv); }
+    },700);
+  },3500);
+}
+function beginFocus(lock){
+  requestNotify();
+  timer.phase='focus'; timer.running=true; timer.startTs=Date.now(); timer.accMs=0;
+  if(!timer.subjectId||!data.settings.subjects.some(function(s){return s.id===timer.subjectId;}))timer.subjectId=data.settings.subjects[0].id;
+  pomoLock=!!lock; saveTimer(); renderPomo();
+  if(pomoLock){ lockStart(); toast('如系统弹出「屏幕固定」确认，请点「开始」'); scheduleLockCheck(); } else { lockStop(); }
+}
+function togglePomoLock(){
+  if(timer.phase!=='focus')return;
+  pomoLock=!pomoLock;
+  if(pomoLock){ lockStart(); toast('如系统弹出「屏幕固定」确认，请点「开始」'); scheduleLockCheck(); } else { lockStop(); }
+  renderPomo();
+}
+function stopFocusLock(){ if(pomoLock){ pomoLock=false; lockStop(); } }
+
 function renderPomo(){
   var body=$('#pomo-body'); if(!body)return; var hint=$('#pomo-hint');
   var pm=data.settings.pomodoro; var focusMin=timer.dur||pm.focus;
@@ -1121,12 +1188,13 @@ function renderPomo(){
   $('#pomo-subject').addEventListener('change',function(){ timer.subjectId=this.value; saveTimer(); });
   $('#pomo-tag').addEventListener('input',function(){ timer.tag=this.value; });
   var ctl=$('#t-ctls'), ht=$('#t-hint'), hintTxt='';
+  var lockBtn=nativeLock()?(pomoLock?'<button class="btn pri" data-act="plock">🔒 锁屏中·点按解锁</button>':'<button class="btn" data-act="plock">🔒 锁屏</button>'):'';
   if(phase==='idle'&&!ui.pendingBreak){
     ctl.innerHTML='<div class="pomo-presets">'+[25,30,45,60].map(function(x){ return '<button class="pchip'+(focusMin===x?' on':'')+'" data-act="pset" data-min="'+x+'">'+x+'′</button>'; }).join('')+'</div><button class="btn ok" data-act="pstart" style="flex:1.6">▶ 开始专注</button>';
     hintTxt='选好时长与科目开始 · 完成自动计入该科目累计';
   } else if(phase==='focus'){
-    ctl.innerHTML=(running?'<button class="btn" data-act="ppause">⏸ 暂停</button>':'<button class="btn pri" data-act="presume">▶ 继续</button>')+'<button class="btn" data-act="psave">结算</button><button class="btn ghost" data-act="pdrop">放弃</button>';
-    hintTxt=(running?'计时中 · 完成计入「'+subj(timer.subjectId).name+'」':'已暂停 · 可继续或结算')+'（本次 '+focusMin+' 分钟）';
+    ctl.innerHTML=(running?'<button class="btn" data-act="ppause">⏸ 暂停</button>':'<button class="btn pri" data-act="presume">▶ 继续</button>')+'<button class="btn" data-act="psave">结算</button>'+lockBtn+'<button class="btn ghost" data-act="pdrop">放弃</button>';
+    hintTxt=(running?'计时中 · 完成计入「'+subj(timer.subjectId).name+'」':'已暂停 · 可继续或结算')+'（本次 '+focusMin+' 分钟）'+(pomoLock?' · 🔒 锁屏专注中':'');
   } else if(restPhase){
     ctl.innerHTML='<button class="btn pri" data-act="pskip">⏭ 跳过休息</button>';
     hintTxt='休息中，不计入学习时长';
@@ -1171,11 +1239,11 @@ function completePhase(){
   }
 }
 function actionPomo(act){
-  if(act==='pstart'){ if(!data.settings.subjects.length){ toast('请先在设置中添加科目'); return; } requestNotify(); timer.phase='focus'; timer.running=true; timer.startTs=Date.now(); timer.accMs=0; if(!timer.subjectId||!data.settings.subjects.some(function(s){return s.id===timer.subjectId;}))timer.subjectId=data.settings.subjects[0].id; saveTimer(); renderPomo(); }
+  if(act==='pstart'){ if(!data.settings.subjects.length){ toast('请先在设置中添加科目'); return; } if(nativeLock()){ askLockModal(function(lock){ if(lock!==null)beginFocus(lock); }); } else { beginFocus(false); } }
   else if(act==='ppause'){ if(timer.running){ timer.accMs+=Date.now()-timer.startTs; timer.running=false; saveTimer(); renderPomo(); } }
   else if(act==='presume'){ timer.startTs=Date.now(); timer.running=true; saveTimer(); renderPomo(); }
-  else if(act==='psave'){ var min=Math.round(elapsedMs()/60000); if(min<1){ timer.phase='idle'; timer.running=false; timer.accMs=0; saveTimer(); renderPomo(); toast('不足 1 分钟，未记录'); return; } if(confirm('已专注约 '+min+' 分钟，保存并结束？')){ finalizeFocus(true); toast('已记录 '+min+' 分钟'); renderActive(); } }
-  else if(act==='pdrop'){ if(confirm('确定放弃本次专注？将不记录时长')){ timer.phase='idle'; timer.running=false; timer.accMs=0; timer.startTs=0; timer.dur=null; saveTimer(); renderPomo(); } }
+  else if(act==='psave'){ var min=Math.round(elapsedMs()/60000); if(min<1){ stopFocusLock(); timer.phase='idle'; timer.running=false; timer.accMs=0; saveTimer(); renderPomo(); toast('不足 1 分钟，未记录'); return; } if(confirm('已专注约 '+min+' 分钟，保存并结束？')){ finalizeFocus(true); toast('已记录 '+min+' 分钟'); renderActive(); } }
+  else if(act==='pdrop'){ if(confirm('确定放弃本次专注？将不记录时长')){ stopFocusLock(); timer.phase='idle'; timer.running=false; timer.accMs=0; timer.startTs=0; timer.dur=null; saveTimer(); renderPomo(); } }
   else if(act==='pskip'){ timer.phase='idle'; timer.running=false; timer.accMs=0; timer.startTs=0; saveTimer(); renderPomo(); }
   else if(act==='pbreak'){ var l=event&&event.currentTarget&&event.currentTarget.getAttribute('data-long')==='1'; var pm=data.settings.pomodoro; timer.phase=l?'long':'short'; timer.running=true; timer.startTs=Date.now(); timer.accMs=0; ui.pendingBreak=null; saveTimer(); renderPomo(); }
   else if(act==='pnext'){ ui.pendingBreak=null; timer.phase='idle'; timer.running=false; timer.accMs=0; saveTimer(); renderPomo(); }
@@ -1910,6 +1978,7 @@ function clearAllData(){
   toast('已清空');
 }/* ============ 修正版：结算/动作（覆盖前面同名函数，支持参数） ============ */
 function finalizeFocus(saveAnyway){
+  stopFocusLock();
   var cap=timer.phase==='focus'?data.settings.pomodoro.focus:(timer.phase==='short'?data.settings.pomodoro.short:(timer.phase==='long'?data.settings.pomodoro.long:0));
   var minutes=Math.min(cap||9999,Math.round(elapsedMs()/60000));
   if(minutes>=1){ var date=todayStr(); dayRec(date).sessions.push({id:uid(),subjectId:timer.subjectId||'',tag:timer.tag||'',minutes:minutes,ts:Date.now(),source:'pomodoro'}); save(); }
@@ -1918,11 +1987,11 @@ function finalizeFocus(saveAnyway){
   return minutes;
 }
 function actionPomo(act,el){
-  if(act==='pstart'){ if(!data.settings.subjects.length){ toast('请先在设置中添加科目'); return; } requestNotify(); timer.phase='focus'; timer.running=true; timer.startTs=Date.now(); timer.accMs=0; if(!timer.subjectId||!data.settings.subjects.some(function(s){return s.id===timer.subjectId;}))timer.subjectId=data.settings.subjects[0].id; saveTimer(); renderPomo(); }
+  if(act==='pstart'){ if(!data.settings.subjects.length){ toast('请先在设置中添加科目'); return; } if(nativeLock()){ askLockModal(function(lock){ if(lock!==null)beginFocus(lock); }); } else { beginFocus(false); } }
   else if(act==='ppause'){ if(timer.running){ timer.accMs+=Date.now()-timer.startTs; timer.running=false; saveTimer(); renderPomo(); } }
   else if(act==='presume'){ timer.startTs=Date.now(); timer.running=true; saveTimer(); renderPomo(); }
-  else if(act==='psave'){ var min=Math.round(elapsedMs()/60000); if(min<1){ timer.phase='idle'; timer.running=false; timer.accMs=0; saveTimer(); renderPomo(); toast('不足 1 分钟，未记录'); return; } if(confirm('已专注约 '+min+' 分钟，保存并结束？')){ finalizeFocus(true); toast('已记录 '+min+' 分钟'); renderActive(); } }
-  else if(act==='pdrop'){ if(confirm('确定放弃本次专注？将不记录时长')){ timer.phase='idle'; timer.running=false; timer.accMs=0; timer.startTs=0; saveTimer(); renderPomo(); } }
+  else if(act==='psave'){ var min=Math.round(elapsedMs()/60000); if(min<1){ stopFocusLock(); timer.phase='idle'; timer.running=false; timer.accMs=0; saveTimer(); renderPomo(); toast('不足 1 分钟，未记录'); return; } if(confirm('已专注约 '+min+' 分钟，保存并结束？')){ finalizeFocus(true); toast('已记录 '+min+' 分钟'); renderActive(); } }
+  else if(act==='pdrop'){ if(confirm('确定放弃本次专注？将不记录时长')){ stopFocusLock(); timer.phase='idle'; timer.running=false; timer.accMs=0; timer.startTs=0; saveTimer(); renderPomo(); } }
   else if(act==='pskip'){ timer.phase='idle'; timer.running=false; timer.accMs=0; timer.startTs=0; saveTimer(); renderPomo(); }
   else if(act==='pbreak'){ var l=el&&el.getAttribute('data-long')==='1'; var pm=data.settings.pomodoro; timer.phase=l?'long':'short'; timer.running=true; timer.startTs=Date.now(); timer.accMs=0; ui.pendingBreak=null; saveTimer(); renderPomo(); }
   else if(act==='pnext'){ ui.pendingBreak=null; timer.phase='idle'; timer.running=false; timer.accMs=0; saveTimer(); renderPomo(); }
@@ -1959,6 +2028,7 @@ function handleAct(act,el){
     case 'todayday': ui.viewDate=todayStr(); renderActive(); break;
     case 'pset': { var mn=parseInt(el.getAttribute('data-min'),10); if(mn>0){ timer.dur=mn; saveTimer(); renderPomo(); } break; }
     case 'pstart': case 'ppause': case 'presume': case 'psave': case 'pdrop': case 'pskip': case 'pbreak': case 'pnext': case 'pend': actionPomo(act,el); break;
+    case 'plock': togglePomoLock(); break;
     case 'tasktoggle': { var t=dayRec(ui.viewDate).tasks.find(function(x){return x.id===id;}); if(t){ t.status=t.status==='done'?'todo':'done'; save(); renderTasks(); renderTodaySummary(); } break; }
     case 'taskab': { var t2=dayRec(ui.viewDate).tasks.find(function(x){return x.id===id;}); if(t2){ t2.status=t2.status==='abandoned'?'todo':'abandoned'; save(); renderTasks(); renderTodaySummary(); } break; }
     case 'taskedit': taskEditStart(id); break;
