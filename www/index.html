@@ -1581,6 +1581,9 @@ function renderPaperLog(){
     html+='<div class="listrow"><span class="chip tagchip">第 '+(i+1)+' 题</span>'+chipHtml(m.subjectId)+'<span class="muted small">'+(m.tag||'')+'</span><span style="margin-left:auto"></span>'+state+'</div>';
   });
   html+='</div>';
+  if(ui.webPdfUrl){
+    html+='<div class="rowline mt10" style="justify-content:center"><a class="btn pri" target="_blank" rel="noopener" href="'+ui.webPdfUrl+'">📄 若未下载：点这里在浏览器打开/保存 PDF</a></div>';
+  }
   box.innerHTML=html;
 }
 function showPaperLog(items){ ui.lastPaper={items:items, done:{}}; renderPaperLog(); }
@@ -1615,7 +1618,14 @@ function makePaper(){
     if(!bytes){ toast('生成失败'); return; }
     var name='研岸错题自测-'+todayStr()+'.pdf';
     if(window.AndroidPdf){ try{ window.AndroidPdf.open(bytesToB64(bytes), name); toast('正在打开 PDF…'); }catch(e){ downloadBytes(bytes,name); } }
-    else { downloadBytes(bytes,name); }
+    else {
+      try{
+        var blob=new Blob([bytes],{type:'application/pdf'});
+        if(ui.webPdfUrl)URL.revokeObjectURL(ui.webPdfUrl);
+        ui.webPdfUrl=URL.createObjectURL(blob); ui.webPdfName=name;
+      }catch(e){}
+      downloadBytes(bytes,name);
+    }
     showPaperLog(items);
     toast('已生成 '+cnt+' 题试卷（单科：'+subj(items[0].subjectId).name+'）');
   }).catch(function(e){ toast('生成失败：'+(e&&e.message||e)); });
