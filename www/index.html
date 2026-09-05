@@ -498,6 +498,107 @@ html[data-theme=dark] .datebar .dlabel{color:var(--text)}
 @media (prefers-reduced-motion:reduce){
   .view.active .card,.view.active .glass,.view.active .hcard,.view.active .mstat,.view.active .mini-stat{animation:none}
 }
+</style><style id="v18">
+*{-webkit-tap-highlight-color:transparent}
+button,a,input[type=checkbox]{-webkit-touch-callout:none}
+button{-webkit-user-select:none;user-select:none;-webkit-appearance:none}
+.btab{position:relative;color:var(--muted);font-weight:600;font-size:12px;padding:13px 2px 11px;transition:color .2s}
+.btab .icw,.btab .ic{display:none}
+.btab:active,.btab:focus{background:transparent;transform:none;outline:none}
+.btab.active{color:var(--accent);font-weight:700}
+html[data-theme=dark] .btab.active{color:#8fb0ff}
+.btab.active::after{content:"";position:absolute;left:50%;bottom:5px;transform:translateX(-50%);width:20px;height:3px;border-radius:99px;background:linear-gradient(90deg,var(--accent),#67e8f9)}
+:root{--hTr:79;--hTg:109;--hTb:245}
+body{
+  background:
+    radial-gradient(120% 90% at 8% -8%, rgba(var(--hTr),var(--hTg),var(--hTb),.20), transparent 58%),
+    radial-gradient(120% 90% at 96% -4%, rgba(14,165,160,.13), transparent 55%),
+    radial-gradient(100% 80% at 50% 112%, rgba(245,158,11,.09), transparent 60%),
+    var(--bg);
+  background-attachment:fixed;
+}
+html[data-theme=dark] body{
+  background:
+    radial-gradient(120% 90% at 8% -8%, rgba(var(--hTr),var(--hTg),var(--hTb),.22), transparent 58%),
+    radial-gradient(120% 90% at 96% -4%, rgba(14,165,160,.11), transparent 55%),
+    radial-gradient(100% 80% at 50% 112%, rgba(245,158,11,.07), transparent 60%),
+    #0b101c;
+  background-attachment:fixed;
+}
+.wrap > .view:not(#v-home) .card,
+html[data-theme=dark] .wrap > .view:not(#v-home) .card{
+  border-color:rgba(var(--hTr),var(--hTg),var(--hTb),.34);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12), 0 14px 34px -20px rgba(0,0,0,.7);
+}
+</style><style id="v19">
+.wrap > .view:not(#v-home) .card,
+.wrap > .view:not(#v-home) .mstat,
+.wrap > .view:not(#v-home) .mini-stat{
+  background:#FFFFFF;
+  border:1px solid rgba(15,23,42,.08);
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+  border-radius:20px;
+  box-shadow:0 10px 26px -18px rgba(20,30,60,.22), inset 0 1px 0 #ffffff;
+}
+/* 考研倒计时放大 */
+#v-home .hero-count{font-size:88px;letter-spacing:-1px}
+#v-home .hero-count small{font-size:.26em}
+@media (min-height:860px){ #v-home .hero-count{font-size:98px} }
+</style><style id="v20">
+:root{--cr:16;--cg:22;--cb:38}
+.wrap > .view:not(#v-home) .card,
+.wrap > .view:not(#v-home) .mstat,
+.wrap > .view:not(#v-home) .mini-stat{
+  background:rgb(var(--cr),var(--cg),var(--cb));
+  border:1px solid rgba(255,255,255,.14);
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+  border-radius:20px;
+  box-shadow:0 12px 30px -20px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.14);
+}
+.wrap[data-card="dark"] > .view:not(#v-home) .card,
+.wrap[data-card="dark"] > .view:not(#v-home) .mstat,
+.wrap[data-card="dark"] > .view:not(#v-home) .mini-stat{color:#eef2fb}
+.wrap[data-card="dark"] > .view:not(#v-home) .card .card-h{color:#ffffff}
+.wrap[data-card="dark"] > .view:not(#v-home) .card .card-h .hint{color:rgba(238,242,251,.62)}
+.wrap[data-card="dark"] > .view:not(#v-home) .card .in,
+.wrap[data-card="dark"] > .view:not(#v-home) .card textarea.in{
+  background:rgba(255,255,255,.08);
+  border-color:rgba(255,255,255,.14);
+  color:#eef2fb;
+}
+.wrap[data-card="dark"] > .view:not(#v-home) .card .in::placeholder{color:rgba(238,242,251,.45)}
+.wrap[data-card="dark"] > .view:not(#v-home) .card select.in option{background:#101624;color:#eef2fb}
+.wrap[data-card="dark"] > .view:not(#v-home) .card label.f,
+.wrap[data-card="dark"] > .view:not(#v-home) .card .muted,
+.wrap[data-card="dark"] > .view:not(#v-home) .card .small,
+.wrap[data-card="dark"] > .view:not(#v-home) .card .t-meta,
+.wrap[data-card="dark"] > .view:not(#v-home) .card .empty{color:rgba(238,242,251,.68)}
+.wrap[data-card="dark"] > .view:not(#v-home) .card .chip.tagchip{background:rgba(255,255,255,.1);color:rgba(238,242,251,.85)}
+.wrap[data-card="dark"] > .view:not(#v-home) .card .btn{
+  background:rgba(255,255,255,.1);color:#eef2fb;border-color:rgba(255,255,255,.18);
+}
+.wrap[data-card="dark"] > .view:not(#v-home) .card .btn.pri{background:var(--accent);border-color:transparent;color:#fff}
+.wrap[data-card="dark"] > .view:not(#v-home) .card .btn.ok{background:var(--ok);border-color:transparent;color:#fff}
+.wrap[data-card="dark"] > .view:not(#v-home) .card .btn.ghost{background:transparent;border-color:transparent}
+.wrap[data-card="dark"] > .view:not(#v-home) .card .btn:hover{color:#fff;border-color:rgba(255,255,255,.4)}
+.wrap[data-card="dark"] > .view:not(#v-home) .card .qa-box{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1)}
+.wrap[data-card="dark"] > .view:not(#v-home) .card .detail-box{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.12)}
+.wrap[data-card="dark"] > .view:not(#v-home) .card .note-line{background:rgba(245,158,11,.16);color:#fcd34d}
+.wrap[data-card="dark"] > .view:not(#v-home) .mstat .lab,
+.wrap[data-card="dark"] > .view:not(#v-home) .mini-stat .lab{color:rgba(238,242,251,.6)}
+.wrap[data-card="dark"] > .view:not(#v-home) .datebar .dlabel,
+.wrap[data-card="dark"] .page-head h2{color:var(--text)}
+</style><style id="v21">
+body{
+  background:
+    radial-gradient(95% 75% at 8% -6%, rgba(var(--bR),var(--bG),var(--bB),.62), transparent 62%),
+    radial-gradient(80% 65% at 100% 12%, rgba(var(--bR),var(--bG),var(--bB),.40), transparent 60%),
+    radial-gradient(70% 60% at 50% 115%, rgba(var(--bR),var(--bG),var(--bB),.34), transparent 60%),
+    linear-gradient(180deg,#f8fafe,#eef2f8);
+  background-attachment:fixed;
+}
 </style></head>
 <body>
 <script>
@@ -530,7 +631,7 @@ function defaultSubjects(){ return [
  {id:'math',name:'数学',color:'#f59e0b'},
  {id:'maj',name:'专业课',color:'#8b5cf6'}
 ]; }
-function defaultSettings(){ return {subjects:defaultSubjects(),dailyGoalMin:480,pomodoro:{focus:25,short:5,long:15,longEvery:4},reviewIntervals:FALLBACK_INTERVALS.slice(),examDate:'',theme:'dark',useDailyBg:true}; }
+function defaultSettings(){ return {subjects:defaultSubjects(),dailyGoalMin:480,pomodoro:{focus:25,short:5,long:15,longEvery:4},reviewIntervals:FALLBACK_INTERVALS.slice(),examDate:'',theme:'light',useDailyBg:true}; }
 function defaultData(){ return {version:1,settings:defaultSettings(),days:{},mistakes:[]}; }
 function defaultTimer(){ return {phase:'idle',running:false,startTs:0,accMs:0,subjectId:'',tag:'',streak:0,dur:null}; }
 let data=defaultData();
@@ -863,16 +964,16 @@ var LAYOUT = `
 </section>
 </div>
 <nav class="tabbar"><div class="tabbar-in">
-  <button class="btab active" data-act="tab" data-tab="home"><span class="icw"><span class="ic">🏠</span></span>首页</button>
-  <button class="btab" data-act="tab" data-tab="mistake"><span class="icw"><span class="ic">📕</span></span>错题</button>
-  <button class="btab" data-act="tab" data-tab="stats"><span class="icw"><span class="ic">📊</span></span>统计</button>
-  <button class="btab" data-act="tab" data-tab="settings"><span class="icw"><span class="ic">⚙️</span></span>设置</button>
+  <button class="btab active" data-act="tab" data-tab="home">首页</button>
+  <button class="btab" data-act="tab" data-tab="mistake">错题</button>
+  <button class="btab" data-act="tab" data-tab="stats">统计</button>
+  <button class="btab" data-act="tab" data-tab="settings">设置</button>
 </div></nav>
 `;/* ============ DOM 小工具 ============ */
 function $(sel){ return document.querySelector(sel); }
 function toast(msg){ var w=document.getElementById('toastwrap'); if(!w){ w=document.createElement('div'); w.id='toastwrap'; document.body.appendChild(w); } var t=document.createElement('div'); t.className='toast'; t.textContent=msg; w.appendChild(t); setTimeout(function(){ t.style.transition='opacity .4s'; t.style.opacity='0'; setTimeout(function(){ t.remove(); },400); },2600); }
 function updateStoreMeter(){ if(typeof document==='undefined')return; var el=document.getElementById('store-meter'); if(!el)return; try{ var bytes=new TextEncoder().encode(JSON.stringify(data)).length; var mb=(bytes/1024/1024).toFixed(2); var pct=Math.min(100,bytes/MAX_BYTES*100); el.querySelector('i').style.width=pct+'%'; el.classList.toggle('warn',pct>60&&pct<=85); el.classList.toggle('full',pct>85); var n=document.getElementById('store-num'); if(n)n.textContent=mb+' MB'; }catch(e){} }
-function applyTheme(){ var mode=data.settings.theme; var dark = mode!=='light'; document.documentElement.setAttribute('data-theme',dark?'dark':'light'); try{ if(window.AndroidTheme)window.AndroidTheme.apply(dark?'dark':'light'); }catch(e){} }
+function applyTheme(){ document.documentElement.setAttribute('data-theme','light'); try{ if(window.AndroidTheme)window.AndroidTheme.apply('light'); }catch(e){} }
 function refreshTagDatalists(){ ['tag-suggest','tag-suggest2','tag-suggest3'].forEach(function(dlId){ var dl=document.getElementById(dlId); if(!dl)return; var sidEl=dlId==='tag-suggest'?$('#practice-subject'):dlId==='tag-suggest2'?$('#manual-subject'):$('#m-subject'); var sid=sidEl?sidEl.value:''; var tags={}; Object.keys(data.days).forEach(function(k){ (data.days[k].practice||[]).forEach(function(p){ if(p.subjectId===sid&&p.tag)tags[p.tag]=1; }); (data.days[k].sessions||[]).forEach(function(s){ if(s.subjectId===sid&&s.tag)tags[s.tag]=1; }); }); data.mistakes.forEach(function(m){ if(m.subjectId===sid&&m.tag)tags[m.tag]=1; }); var opts=Object.keys(tags).sort(); dl.innerHTML=opts.map(function(t){return '<option value="'+escDl(t)+'"></option>';}).join(''); }); }
 function fillSubjectOptions(){ document.querySelectorAll('.subj-sel').forEach(function(sel){ var cur=sel.value; subjectOptions(sel,data.settings.subjects.some(function(x){return x.id===cur;})?cur:''); }); refreshTagDatalists(); }
 
@@ -1066,8 +1167,22 @@ function mistakeFind(id){ return data.mistakes.find(function(m){return m.id===id
 /* ============ 首页（第二代） ============ */
 var QUOTES=[{"en":"The secret of getting ahead is getting started.","cn":"前进的秘诀，在于开始行动。"},{"en":"Discipline is the bridge between goals and accomplishment.","cn":"自律，是目标与成就之间的桥梁。"},{"en":"It always seems impossible until it is done.","cn":"在真正完成之前，它总是显得不可能。"},{"en":"Success is the sum of small efforts, repeated day in and day out.","cn":"成功，是日复一日重复的小努力的加总。"},{"en":"Do not pray for an easy life; pray for the strength to endure a difficult one.","cn":"不要祈祷轻松的人生，要祈祷扛住艰难的力量。"},{"en":"The best time to plant a tree was 20 years ago. The second best time is now.","cn":"种树最好的时间是二十年前，其次就是现在。"},{"en":"Push yourself, because no one else is going to do it for you.","cn":"逼自己一把——没有人会替你努力。"},{"en":"Great things never come from comfort zones.","cn":"伟大的事，从不会来自舒适区。"},{"en":"Dream big and dare to fail.","cn":"敢于梦想，也敢于失败。"},{"en":"Act as if what you do makes a difference. It does.","cn":"像你所做的能改变世界那样去做——它确实能。"},{"en":"Don't watch the clock; do what it does. Keep going.","cn":"别只盯着钟表，要像它一样一直走下去。"},{"en":"Strive for progress, not perfection.","cn":"追求进步，而非完美。"},{"en":"Hardships often prepare ordinary people for an extraordinary destiny.","cn":"艰难，常常是在为平凡人准备非凡的命运。"},{"en":"The pain you feel today will be the strength you feel tomorrow.","cn":"今天的痛苦，会成为明天的力量。"},{"en":"Small daily improvements are the key to staggering long-term results.","cn":"每天一点小进步，是惊人长期成果的关键。"},{"en":"You don't have to be great to start, but you have to start to be great.","cn":"你不必足够优秀才能开始，但必须开始才能变得优秀。"},{"en":"Believe you can and you're halfway there.","cn":"相信自己可以，你就已经走完一半了。"},{"en":"Focus on your goal. Do not look in any direction but ahead.","cn":"专注于你的目标，只看向前方。"},{"en":"It does not matter how slowly you go as long as you do not stop.","cn":"走得慢并不可怕，只要你别停下。"},{"en":"Energy and persistence conquer all things.","cn":"精力与坚持，能征服一切。"},{"en":"Learning never exhausts the mind.","cn":"学习，永远不会让头脑疲惫。"},{"en":"The expert in anything was once a beginner.","cn":"任何领域的专家，都曾是初学者。"},{"en":"Your only limit is your mind.","cn":"你唯一的限制，是你的想法。"},{"en":"One hour of study a day is more than most people ever do.","cn":"每天学习一小时，已经超过大多数人了。"}];
 var BG_GRADS=["linear-gradient(160deg,#0f2027,#203a43,#2c5364)","linear-gradient(160deg,#1a2a6c,#b21f1f,#fdbb2d)","linear-gradient(160deg,#141e30,#243b55)","linear-gradient(160deg,#0f0c29,#302b63,#24243e)","linear-gradient(160deg,#232526,#414345)","linear-gradient(160deg,#134e5e,#71b280)","linear-gradient(160deg,#373b44,#4286f4)","linear-gradient(160deg,#41295a,#2f0743)"];
-var launch={quoteIdx:-1,bgSeed:'',gradIdx:-1};
-function loadLaunch(){ try{ var r=storeGet(LS_LAUNCH); if(r)launch=Object.assign({quoteIdx:-1,bgSeed:'',gradIdx:-1},JSON.parse(r)); }catch(e){} }
+var BG_LANDSCAPES=[
+ 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1200&q=80',
+ 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1200&q=80',
+ 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1200&q=80',
+ 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=80',
+ 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1200&q=80',
+ 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1200&q=80',
+ 'https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?auto=format&fit=crop&w=1200&q=80',
+ 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80',
+ 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80',
+ 'https://images.unsplash.com/photo-1472214103451-9374bd1c798e?auto=format&fit=crop&w=1200&q=80',
+ 'https://images.unsplash.com/photo-1433086966358-54859d0ed716?auto=format&fit=crop&w=1200&q=80',
+ 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1200&q=80'
+];
+var launch={quoteIdx:-1,bgIdx:-1,gradIdx:-1};
+function loadLaunch(){ try{ var r=storeGet(LS_LAUNCH); if(r)launch=Object.assign({quoteIdx:-1,bgIdx:-1,gradIdx:-1},JSON.parse(r)); }catch(e){} }
 function saveLaunch(){ storeSet(LS_LAUNCH,JSON.stringify(launch)); }
 function pickLaunchRandom(){
   var qi=Math.floor(Math.random()*QUOTES.length);
@@ -1076,26 +1191,49 @@ function pickLaunchRandom(){
   var gi=Math.floor(Math.random()*BG_GRADS.length);
   if(launch.gradIdx>=0&&BG_GRADS.length>1&&gi===launch.gradIdx)gi=(gi+1)%BG_GRADS.length;
   launch.gradIdx=gi;
-  var seed='s'+Math.random().toString(36).slice(2,10);
-  var tries=0;
-  while(seed===launch.bgSeed&&tries++<5){ seed='s'+Math.random().toString(36).slice(2,10); }
-  launch.bgSeed=seed;
+  var bi=Math.floor(Math.random()*BG_LANDSCAPES.length);
+  if(launch.bgIdx>=0&&BG_LANDSCAPES.length>1&&bi===launch.bgIdx)bi=(bi+1)%BG_LANDSCAPES.length;
+  launch.bgIdx=bi;
   saveLaunch();
 }
 function dayNum(){ return parseInt(todayStr().replace(/-/g,''),10); }
 function renderActive(){ if(ui.tab==='home')renderHome(); else if(ui.tab==='record')renderRecord(); }
-function bgImageUrl(){ return 'https://picsum.photos/seed/'+(launch.bgSeed||('kaoyan-'+todayStr()))+'/900/1600'; }
-function preloadBg(){ if(data.settings.useDailyBg===false)return; try{ var im=new Image(); im.src=bgImageUrl(); }catch(e){} }
+function bgImageUrl(){ return BG_LANDSCAPES[(launch.bgIdx>=0&&launch.bgIdx<BG_LANDSCAPES.length)?launch.bgIdx:0]; }
+function applyTint(img){
+  try{
+    var c=document.createElement('canvas'); c.width=8; c.height=8;
+    var x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(img,0,0,8,8);
+    var d=x.getImageData(0,0,8,8).data; var r=0,g=0,b=0,n=0;
+    for(var i=0;i<d.length;i+=4){ if(d[i+3]>128){ r+=d[i]; g+=d[i+1]; b+=d[i+2]; n++; } }
+    if(!n)return;
+    r=Math.round(r/n); g=Math.round(g/n); b=Math.round(b/n);
+    // 首页卡片呈现色 ≈ 图片 ×(1-0.42) + 深色底(16,22,38) ×0.42
+    var cr=Math.round(16*0.42 + r*0.58);
+    var cg=Math.round(22*0.42 + g*0.58);
+    var cb=Math.round(38*0.42 + b*0.58);
+    var root=document.documentElement;
+    root.style.setProperty('--cr',cr); root.style.setProperty('--cg',cg); root.style.setProperty('--cb',cb);
+    root.style.setProperty('--hTr',r); root.style.setProperty('--hTg',g); root.style.setProperty('--hTb',b);
+    // 浅色氛围色：向白色靠拢 82%（越接近首页主色的“淡彩”）
+    root.style.setProperty('--bR',Math.round(255-(255-r)*0.82));
+    root.style.setProperty('--bG',Math.round(255-(255-g)*0.82));
+    root.style.setProperty('--bB',Math.round(255-(255-b)*0.82));
+    var wrap=document.querySelector('.wrap'); if(wrap)wrap.setAttribute('data-card','dark');
+  }catch(e){}
+}
+function preloadBg(){
+  if(data.settings.useDailyBg===false)return;
+  try{ var im=new Image(); im.crossOrigin='anonymous'; im.src=bgImageUrl(); im.onload=function(){ applyTint(im); }; }catch(e){}
+}
 function applyDailyBg(){
   var el=$('#home-bg'); if(!el)return;
-  var gi=(launch.gradIdx>=0&&launch.gradIdx<BG_GRADS.length)?launch.gradIdx:(dayNum()%BG_GRADS.length);
-  var grad=BG_GRADS[gi];
-  el.style.background=grad;
-  if(data.settings.useDailyBg===false)return;
+  var grad=BG_GRADS[(launch.gradIdx>=0&&launch.gradIdx<BG_GRADS.length)?launch.gradIdx:(dayNum()%BG_GRADS.length)];
+  if(data.settings.useDailyBg===false){ el.style.background=grad; return; }
   var url=bgImageUrl();
-  var img=new Image();
-  img.onload=function(){ el.style.background='url("'+url+'") center/cover no-repeat #12182b'; };
-  img.onerror=function(){ /* 保持渐变 */ };
+  el.style.background='#11162a url("'+url+'") center/cover no-repeat';
+  var img=new Image(); img.crossOrigin='anonymous';
+  img.onload=function(){ try{ applyTint(img); }catch(e){} };
+  img.onerror=function(){ el.style.background=grad; };
   img.src=url;
 }
 function renderQuote(){
@@ -1585,6 +1723,10 @@ function bindEvents(){
 function init(){
   loadData(); loadTimer(); applyTheme();
   document.body.innerHTML=LAYOUT;
+  var w0=document.querySelector('.wrap'); if(w0)w0.setAttribute('data-card','dark');
+  document.documentElement.style.setProperty('--bR',222);
+  document.documentElement.style.setProperty('--bG',228);
+  document.documentElement.style.setProperty('--bB',247);
   bindEvents();
   loadLaunch(); pickLaunchRandom();
   switchTab('home');
