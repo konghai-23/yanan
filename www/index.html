@@ -629,6 +629,7 @@ function renderToday(){
   renderTodaySummary(); renderPomo(); renderSessions(); renderTasks(); renderPractice();
 }
 function renderTodaySummary(){
+  var today=todayStr();
   var date=ui.viewDate,rec=dateExists(date)?data.days[date]:null;
   var focus=0,done=0,ab=0,tt=0; if(rec){ (rec.sessions||[]).forEach(function(s){focus+=s.minutes||0;}); (rec.tasks||[]).forEach(function(t){tt++; if(t.status==='done')done++; else if(t.status==='abandoned')ab++;}); }
   var goal=data.settings.dailyGoalMin; var pct=goal?Math.round(focus/goal*100):0;
