@@ -1693,6 +1693,13 @@ function showMistakePhoto(slot){
   el.innerHTML='<img src="'+d+'" alt="缩略图"><button class="btn mini ghost rm" data-act="mimgclear" data-slot="'+slot+'">重拍/移除</button>';
 }
 function showMistakeImg(){ showMistakePhoto('q'); showMistakePhoto('a'); }
+window.__photoFromNative=function(data){
+  if(!data)return;
+  var slot=window.__pendingShot==='a'?'a':'q';
+  if(slot==='a'){ ui.mAImg=data; ui.mAProc='答案解析照（相机直存）'; } else { ui.mQImg=data; ui.mQProc='题目照（相机直存）'; }
+  showMistakePhoto(slot);
+  toast(slot==='a'?'答案解析照已添加':'题目照已添加');
+};
 function compressImageFile(file,cb){ var img=new Image(); var url=URL.createObjectURL(file); img.onload=function(){ URL.revokeObjectURL(url); try{ var MAX=1200; var w=img.naturalWidth||img.width,h=img.naturalHeight||img.height; var sc=Math.min(1,MAX/Math.max(w,h)); w=Math.max(1,Math.round(w*sc)); h=Math.max(1,Math.round(h*sc)); var c=document.createElement('canvas'); c.width=w;c.height=h; var ctx=c.getContext('2d'); ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,w,h); ctx.drawImage(img,0,0,w,h); cb(c.toDataURL('image/jpeg',0.7)); }catch(e){ toast('图片处理失败'); cb(null); } }; img.onerror=function(){ URL.revokeObjectURL(url); toast('无法读取图片'); cb(null); }; img.src=url; }
 function loadScriptOnce(src){ return new Promise(function(res,rej){ if(window.Tesseract){ res(); return; } var sc=document.createElement('script'); sc.src=src; sc.onload=res; sc.onerror=function(){ rej(new Error('load')); }; document.head.appendChild(sc); }); }
 function loadImgFromData(durl){ return new Promise(function(res,rej){ var im=new Image(); im.onload=function(){ res(im); }; im.onerror=rej; im.src=durl; }); }
@@ -1957,7 +1964,7 @@ function handleAct(act,el){
     case 'makepaper': makePaper(); break;
     case 'papermark': markPaperResult(parseInt(el.getAttribute('data-i'),10), el.getAttribute('data-ok')==='1'); break;
     case 'mimgclear': { var sl=el.getAttribute('data-slot')||'q'; if(sl==='a'){ ui.mAImg=null; ui.mAProc=''; var ai2=$('#m-aimg'); if(ai2)ai2.value=''; } else { ui.mQImg=null; ui.mQProc=''; var qi2=$('#m-qimg'); if(qi2)qi2.value=''; } showMistakePhoto(sl); break; }
-    case 'openshot': { var sId=el.getAttribute('data-slot')==='a'?'m-aimg':'m-qimg'; var inp=document.getElementById(sId); if(inp)inp.click(); break; }
+    case 'openshot': { window.__pendingShot=el.getAttribute('data-slot')==='a'?'a':'q'; var sId=el.getAttribute('data-slot')==='a'?'m-aimg':'m-qimg'; var inp=document.getElementById(sId); if(inp)inp.click(); break; }
     case 'imgproc': { var md=el.getAttribute('data-mode'); if(md==='ocr'){ runOcr(); } else { processMistakeImage(md); } break; }
     case 'sdel': deleteSubject(parseInt(el.getAttribute('data-i'),10)); break;
     case 'idel': deleteInterval(parseInt(el.getAttribute('data-i'),10)); break;

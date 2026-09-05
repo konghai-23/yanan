@@ -41,6 +41,6 @@
   ```powershell
   .\build-apk.ps1
   ```
-  安装包会输出到 `dist\`；也可 `-OutName "研岸-v3.6.apk"` 自定义文件名。
+  安装包会输出到 `dist\`；也可 `-OutName "研岸-v3.7.apk"` 自定义文件名。
 - 该 APK 使用个人调试签名，仅供自己手机安装；如需对外发布请另行配置 release 签名（README 不展开）。
 - iPhone 无法在 Windows 上打包，仍用上文“添加到主屏幕”的 PWA 方式。

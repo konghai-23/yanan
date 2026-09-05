@@ -5,9 +5,13 @@ import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.content.Intent;
 import android.provider.MediaStore;
+import android.util.Base64;
 import android.webkit.ValueCallback;
+import java.io.ByteArrayOutputStream;
 import androidx.core.content.FileProvider;
 import java.io.File;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
@@ -140,8 +144,9 @@ public class MainActivity extends Activity {
         if (requestCode == REQ_PICK && mFileMsg != null) {
             Uri result = null;
             if (resultCode == RESULT_OK) {
-                if (mCaptureUri != null && new File(mCaptureUri.getPath()).exists()) { result = mCaptureUri; }
-                else if (data != null && data.getData() != null) { result = data.getData(); }
+                if (mCaptureUri != null && new File(mCaptureUri.getPath()).exists()) {
+                    pushPhotoToJs(new File(mCaptureUri.getPath()));
+                } else if (data != null && data.getData() != null) { result = data.getData(); }
             }
             mFileMsg.onReceiveValue(result != null ? new Uri[]{result} : null);
             mFileMsg = null;
@@ -149,6 +154,30 @@ public class MainActivity extends Activity {
             return;
         }
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private void pushPhotoToJs(final File f) {
+        try {
+            BitmapFactory.Options o = new BitmapFactory.Options();
+            o.inJustDecodeBounds = true;
+            BitmapFactory.decodeFile(f.getAbsolutePath(), o);
+            int w = o.outWidth, h = o.outHeight;
+            int sample = 1;
+            while (Math.max(w, h) / sample > 1600) sample *= 2;
+            BitmapFactory.Options o2 = new BitmapFactory.Options();
+            o2.inSampleSize = sample;
+            Bitmap b = BitmapFactory.decodeFile(f.getAbsolutePath(), o2);
+            if (b == null) return;
+            float max = 1200f;
+            float sc = Math.min(1f, max / (float) Math.max(b.getWidth(), b.getHeight()));
+            Bitmap scaled = Bitmap.createScaledBitmap(b, Math.max(1, Math.round(b.getWidth() * sc)), Math.max(1, Math.round(b.getHeight() * sc)), true);
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            scaled.compress(Bitmap.CompressFormat.JPEG, 85, bos);
+            byte[] bytes = bos.toByteArray();
+            String b64 = Base64.encodeToString(bytes, Base64.NO_WRAP);
+            final String js = "window.__photoFromNative&&window.__photoFromNative('data:image/jpeg;base64," + b64 + "')";
+            web.post(new Runnable() { public void run() { try { web.evaluateJavascript(js, null); } catch (Exception ignored) {} } });
+        } catch (Exception ignored) {}
     }
 
     @Override
